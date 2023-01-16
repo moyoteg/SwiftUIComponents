@@ -497,3 +497,62 @@ public struct BlurrView: UIViewRepresentable {
         
     }
 }
+
+public extension View {
+    
+    func interactionLocation(presented: Bool) -> some View {
+        self.modifier(Modifier.InteractionLocation(presented: presented))
+    }
+}
+
+public extension Modifier {
+    
+    struct InteractionLocation: ViewModifier {
+        
+        var presented: Bool
+                
+        @GestureState private var fingerLocation: CGPoint? = nil
+        
+        var fingerDrag: some Gesture {
+            DragGesture()
+                .updating($fingerLocation) { (value, fingerLocation, transaction) in
+                    fingerLocation = value.location
+                }
+        }
+        
+        public func body(content: Content) -> some View {
+            ZStack {
+                
+                content
+                
+                if let fingerLocation = fingerLocation {
+                    ZStack {
+                     
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    gradient: .init(colors: [.green.opacity(0.2), .green.opacity(0.5)]),
+                                      startPoint: .init(x: 0.5, y: 0),
+                                      endPoint: .init(x: 0.5, y: 0.6)
+                                    )
+                                , lineWidth: 8)
+                            .frame(width: 88, height: 88)
+                        
+                        Circle()
+                            .stroke(
+                                LinearGradient(
+                                    gradient: .init(colors: [.red.opacity(0.9), .red.opacity(0.5)]),
+                                      startPoint: .init(x: 0.5, y: 0),
+                                      endPoint: .init(x: 0.5, y: 0.6)
+                                    )
+                                , lineWidth: 2)
+                            .frame(width: 8, height: 8)
+                    }
+                        .position(fingerLocation)
+                        .isHidden(!presented)
+                }
+            }
+            .simultaneousGesture(fingerDrag)
+        }
+    }
+}
