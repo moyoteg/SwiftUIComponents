@@ -87,7 +87,7 @@ public struct FadeModifier: AnimatableModifier {
             // incremental values. We don't want the system also to
             // implicitly animate it each time we set it. It will also cancel
             // out other implicit animations now present on the content.
-            .animation(nil)
+            .animation(.easeIn, value: 0.3)
     }
 }
 
