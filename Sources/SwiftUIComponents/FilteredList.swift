@@ -24,7 +24,10 @@ public struct FilteredList<Element: StringFilterable,
     
     let title: String?
     let list: [Element]
-    @Binding private var filterText: String
+    @Binding private var bindingFilterText:String
+    
+    @State private var filterText: String = ""
+    
     private var filteredList: [Element] {
         
         if filterText.isEmpty {
@@ -59,6 +62,9 @@ public struct FilteredList<Element: StringFilterable,
             }
             .onChange(of: filterText, perform: { text in
                 self.filterText = text
+            })
+            .onChange(of: bindingFilterText, perform: { text in
+                self.filterText = bindingFilterText
             })
             .padding([.leading, .trailing], 16)
             .padding([.top, .bottom], 2)
@@ -114,7 +120,7 @@ public struct FilteredList<Element: StringFilterable,
         self.list = list
         self.content = content
         self.selection = selection
-        self._filterText = filterText
+        self._bindingFilterText = filterText
     }
 }
 
