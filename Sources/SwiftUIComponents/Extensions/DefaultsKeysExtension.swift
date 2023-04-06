@@ -3,7 +3,6 @@
 //  Common
 //
 //  Created by Moi Gutierrez on 1/17/20.
-//  Copyright © 2020 Nikola Motor. All rights reserved.
 //
 
 import Foundation

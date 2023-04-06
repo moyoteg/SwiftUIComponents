@@ -271,15 +271,15 @@ struct LocalConsole: ViewModifier {
                         .cornerRadius(25)
 
                         NavigationView {
-                            
+
                             FilteredList(
                                 list: Logger.orderedLogs,
                                 filterText: $filterText) { (string) in
-                                    
+
                                     Text("\(string)")
                                         .font(.system(size: 8))
                                 }
-                            
+
                                 .listStyle(GroupedListStyle())
                                 .navigationViewStyle(StackNavigationViewStyle())
                                 .navigationBarHidden(true)
@@ -289,8 +289,9 @@ struct LocalConsole: ViewModifier {
                         .minimumScaleFactor(0.2)
                         .opacity(isHidden ? 0.0:1.0)
                         .cornerRadius(25)
-
+                        
                         buttons()
+                            .shadow(radius: 15)
                         
                     }
                     .position(location)
@@ -303,7 +304,9 @@ struct LocalConsole: ViewModifier {
                     .scaleEffect(magnificationFinalAmount + magnificationCurrentAmount)
                     .opacity(opacity)
                 }
-                .gesture(drag.simultaneously(with: magnification))
+//                .gesture(magnification)
+                .simultaneousGesture(drag)
+
             }
         }
         

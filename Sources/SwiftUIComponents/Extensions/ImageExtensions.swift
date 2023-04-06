@@ -8,6 +8,16 @@
 import Foundation
 import SwiftUI
 
-extension Image {
+import CloudyLogs
 
+public extension Image {
+
+    static func getSafeImage(named: String) -> SwiftUI.Image {
+        
+        if let uiImage = UIImage(named: named) {
+            return SwiftUI.Image(uiImage: uiImage)
+        } else {
+            return SwiftUI.Image(systemName: "circle.slash")
+        }
+    }
 }

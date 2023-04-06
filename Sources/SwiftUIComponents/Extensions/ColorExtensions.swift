@@ -12,6 +12,7 @@ public extension Color {
     static let darkGray = Color(hex: 0x272727)
     static let lightGray = Color(hex: 0xA2A2A2)
     static let lightBlue = Color(hex: 0x00AEEF)
+    static let gold = Color(hex: 0x00AEEF)
 
     static var almostBlack: Color {
         return Color(.sRGB, red: 10.0 / 255.0, green: 12.0 / 255.0, blue: 15.0 / 255.0, opacity: 1.0)
