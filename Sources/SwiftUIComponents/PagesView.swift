@@ -44,7 +44,7 @@ public struct PagesView<Content: View>: View {
                 .frame(width: geometry.size.width, alignment: .leading)
                 .offset(x: -CGFloat(self.currentIndex) * geometry.size.width)
                 .offset(x: self.translation)
-                .animation(.easeIn(duration: animationsDuration))
+                .animation(.easeOut(duration: animationsDuration), value: UUID())
                 .gesture(
                     DragGesture()
                         .onChanged({ (value) in
