@@ -7,6 +7,27 @@
 
 import SwiftUI
 
+public extension Image {
+    func resizableIf(_ condition: Bool) -> Self {
+        if condition {
+            return resizable()
+        } else {
+            return self
+        }
+    }
+}
+
+public extension View {
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}
+
 public extension View {
     func configure(_ configuration: @escaping (Self) -> Void) -> Self {
         configuration(self)

@@ -56,7 +56,7 @@ public struct SecureToggle: ViewModifier {
                 
             }) {
                 
-                Image(systemName: isSecure ? "eye.slash":"eye")
+                URLImage(systemName: isSecure ? "eye.slash":"eye")
                     .foregroundColor(foregroundColor)
             }
             .padding([.leading], 0)
