@@ -219,6 +219,23 @@ public struct URLImage: View {
                     }
                     .padding(.vertical)
                 }
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Scenario 6: Image loaded from system name")
+                        .font(.headline)
+                    VStack(spacing: 5) {
+                        HStack {
+                            Spacer()
+                            URLImage(systemName: "star.fill")
+                                .font(.largeTitle)
+                            Spacer()
+                        }
+                        Text("System Image Name")
+                            .font(.system(size: 18, weight: .medium))
+                            .lineSpacing(5)
+                    }
+                    .padding(.vertical)
+                }
             }
             .listStyle(.plain)
         }
