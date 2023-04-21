@@ -116,7 +116,12 @@ public struct URLImage: View {
             }
             
             if viewModel.isLoading {
-                ProgressView()
+                ZStack {
+                    ProgressView()
+                        .scaledToFill()
+                    placeholderImage
+                    .animatingMask(maskWidth: 200, isMasked: true)
+                }
             }
         }
         .onAppear {
@@ -155,7 +160,7 @@ public struct URLImage: View {
                     VStack(spacing: 5) {
                         HStack {
                             Spacer()
-                            URLImage(url: nil, localImageName: "interest1")
+                            URLImage(url: nil, localImageName: "AppIcon")
                             Spacer()
                         }
                         Text("Local Image")
