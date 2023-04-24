@@ -5,7 +5,7 @@
 //  Created by Moi Gutierrez on 10/15/20.
 //
 
-#if !os(tvOS)
+#if !os(tvOS) && !os(watchOS)
 import UIKit
 
 import DeviceKit

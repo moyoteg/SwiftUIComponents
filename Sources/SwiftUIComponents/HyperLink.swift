@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+#if !os(watchOS)
 struct TextLabelWithHyperLink: UIViewRepresentable {
   
   @State var tintColor: UIColor
@@ -115,3 +116,4 @@ struct HyperLinkItem: Hashable {
     lhs.hashValue == rhs.hashValue
   }
 }
+#endif

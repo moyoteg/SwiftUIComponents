@@ -499,6 +499,7 @@ public struct Rainbow: ViewModifier {
 
 /// Components
 
+#if !os(watchOS)
 public struct BlurrView: UIViewRepresentable {
 
     var style: UIBlurEffect.Style
@@ -518,6 +519,7 @@ public struct BlurrView: UIViewRepresentable {
         
     }
 }
+#endif
 
 public extension View {
     

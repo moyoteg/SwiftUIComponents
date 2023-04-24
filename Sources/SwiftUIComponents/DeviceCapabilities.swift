@@ -8,6 +8,7 @@
 import Foundation
 import LocalAuthentication
 
+#if !os(watchOS)
 public enum DeviceCapabilities {
 
     //To check that device has secure enclave or not
@@ -53,5 +54,5 @@ public enum DeviceCapabilities {
         }
         return isValidPolicy
     }
-
 }
+#endif

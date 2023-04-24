@@ -28,7 +28,8 @@ let package = Package(
         .package(name: "PermissionsKit", url: "https://github.com/moyoteg/PermissionsKit", .branch("main")),
         .package(name: "CloudyLogs", url: "https://github.com/moyoteg/CloudyLogs", .branch("master")),
         .package(name: "SwiftyUserDefaults", url: "https://github.com/sunshinejr/SwiftyUserDefaults", from: "5.0.0"),
-        .package(name: "Introspect", url: "https://github.com/siteline/SwiftUI-Introspect.git", .branch("master")),
+//        .package(name: "Introspect", url: "https://github.com/siteline/SwiftUI-Introspect.git", .branch("master")),
+        .package(name: "Introspect", url: "https://github.com/moyoteg/SwiftUI-Introspect", .branch("master")),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.

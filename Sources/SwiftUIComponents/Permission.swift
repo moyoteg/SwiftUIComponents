@@ -158,6 +158,7 @@ public enum Permission: CaseIterable, Hashable {
         
     case bluetooth
     case notification
+#if !os(watchOS)
     case faceId
     case camera
     case photoLibrary
@@ -166,12 +167,15 @@ public enum Permission: CaseIterable, Hashable {
     case contacts
     case reminders
     case speechRecognizer
+#endif
     case locationWhenInUse
+#if !os(watchOS)
     case locationAlways
     case motion
     case mediaLibrary
     case tracking
     case siri
+#endif
 #if os(iOS) && PERMISSIONSKIT_HEALTH
     case health
 #endif
@@ -180,6 +184,7 @@ public enum Permission: CaseIterable, Hashable {
         switch self {
         case .bluetooth: return PermissionsKit.Permission.bluetooth
         case .notification: return PermissionsKit.Permission.notification
+#if !os(watchOS)
         case .faceId: return PermissionsKit.Permission.faceID
         case .camera: return PermissionsKit.Permission.camera
         case .photoLibrary: return PermissionsKit.Permission.photoLibrary
@@ -188,12 +193,15 @@ public enum Permission: CaseIterable, Hashable {
         case .contacts: return PermissionsKit.Permission.contacts
         case .reminders: return PermissionsKit.Permission.reminders
         case .speechRecognizer: return PermissionsKit.Permission.speech
+#endif
         case .locationWhenInUse: return PermissionsKit.Permission.locationWhenInUse
+#if !os(watchOS)
         case .locationAlways: return PermissionsKit.Permission.locationAlways
         case .motion: return PermissionsKit.Permission.motion
         case .mediaLibrary: return PermissionsKit.Permission.mediaLibrary
         case .tracking: return PermissionsKit.Permission.tracking
         case .siri: return PermissionsKit.Permission.siri
+#endif
 #if os(iOS) && PERMISSIONSKIT_HEALTH
         case .health: return PermissionsKit.Permission.health
 #endif
@@ -204,6 +212,7 @@ public enum Permission: CaseIterable, Hashable {
         switch self {
         case .bluetooth: return "bluetooth"
         case .notification: return "notification"
+#if !os(watchOS)
         case .faceId: return "faceId"
         case .camera: return "camera"
         case .photoLibrary: return "photoLibrary"
@@ -212,12 +221,15 @@ public enum Permission: CaseIterable, Hashable {
         case .contacts: return "contacts"
         case .reminders: return "reminders"
         case .speechRecognizer: return "speechRecognizer"
+#endif
         case .locationWhenInUse: return "locationWhenInUse"
+#if !os(watchOS)
         case .locationAlways: return "locationAlways"
         case .motion: return "motion"
         case .mediaLibrary: return "mediaLibrary"
         case .tracking: return "tracking"
         case .siri: return "siri"
+#endif
 #if os(iOS) && PERMISSIONSKIT_HEALTH
         case .health: return "health"
 #endif
@@ -275,6 +287,7 @@ public enum Permission: CaseIterable, Hashable {
                
             case .bluetooth: let key = PermissionsKit.Permission.bluetooth.usageDescriptionKey; let status = PermissionsKit.Permission.bluetooth.status; Logger.log("Permission: \(permission.permission.kind.name): key: \(String(describing: key)), status: \(status)")
             case .notification: let authorized = PermissionsKit.Permission.notification.authorized; Logger.log("Permission: \(permission.permission.kind.name): authorized: \(authorized)")
+#if !os(watchOS)
             case .faceId: let authorized = PermissionsKit.Permission.faceID.authorized; Logger.log("Permission: \(permission.permission.kind.name): authorized: \(authorized)")
             case .camera: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.camera.authorized)")
             case .photoLibrary: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.photoLibrary.authorized)")
@@ -283,12 +296,15 @@ public enum Permission: CaseIterable, Hashable {
             case .contacts: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.contacts.authorized)")
             case .reminders: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.reminders.authorized)")
             case .speechRecognizer: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.speech.authorized)")
+#endif
             case .locationWhenInUse: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.locationWhenInUse.authorized)")
+#if !os(watchOS)
             case .locationAlways: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.locationAlways.authorized)")
             case .motion: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.motion.authorized)")
             case .mediaLibrary: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.mediaLibrary.authorized)")
             case .tracking: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.tracking.authorized)")
             case .siri: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.siri.authorized)")
+#endif
 #if os(iOS) && PERMISSIONSKIT_HEALTH
             case .health: Logger.log("Permission: \(permission.permission.kind.name): authorized: \(PermissionsKit.Permission.health.authorized)")
 #endif
@@ -301,6 +317,7 @@ public enum Permission: CaseIterable, Hashable {
         switch self {
         case .bluetooth: return PermissionsKit.Permission.bluetooth.request(completion: completion)
         case .notification: return PermissionsKit.Permission.notification.request(completion: completion)
+#if !os(watchOS)
         case .faceId: return PermissionsKit.Permission.faceID.request(completion: completion)
         case .camera: return PermissionsKit.Permission.camera.request(completion: completion)
         case .photoLibrary: return PermissionsKit.Permission.photoLibrary.request(completion: completion)
@@ -309,12 +326,15 @@ public enum Permission: CaseIterable, Hashable {
         case .contacts: return PermissionsKit.Permission.contacts.request(completion: completion)
         case .reminders: return PermissionsKit.Permission.reminders.request(completion: completion)
         case .speechRecognizer: return PermissionsKit.Permission.speech.request(completion: completion)
+#endif
         case .locationWhenInUse: return PermissionsKit.Permission.locationWhenInUse.request(completion: completion)
+#if !os(watchOS)
         case .locationAlways: return PermissionsKit.Permission.locationAlways.request(completion: completion)
         case .motion: return PermissionsKit.Permission.motion.request(completion: completion)
         case .mediaLibrary: return PermissionsKit.Permission.mediaLibrary.request(completion: completion)
         case .tracking: return PermissionsKit.Permission.tracking.request(completion: completion)
         case .siri: return PermissionsKit.Permission.siri.request(completion: completion)
+#endif
 #if os(iOS) && PERMISSIONSKIT_HEALTH
         case .health: return PermissionsKit.Permission.health.request(completion: completion)
 #endif

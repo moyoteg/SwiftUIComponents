@@ -140,6 +140,7 @@ struct LocalConsole: ViewModifier {
             }
     }
     
+#if !os(watchOS)
     var magnification: some Gesture {
         MagnificationGesture()
             .onChanged { amount in
@@ -160,6 +161,7 @@ struct LocalConsole: ViewModifier {
                 }
             }
     }
+#endif
     
 //    var resize: some Gesture {
 //        DragGesture()
@@ -279,8 +281,9 @@ struct LocalConsole: ViewModifier {
                                     Text("\(string)")
                                         .font(.system(size: 8))
                                 }
-
+#if !os(watchOS)
                                 .listStyle(GroupedListStyle())
+#endif
                                 .navigationViewStyle(StackNavigationViewStyle())
                                 .navigationBarHidden(true)
                                 .cornerRadius(25)
@@ -322,7 +325,7 @@ struct LocalConsole: ViewModifier {
             VStack {
                 
                 Spacer()
-                
+#if !os(watchOS)
                 Menu {
                     
                     Button {
@@ -407,7 +410,7 @@ struct LocalConsole: ViewModifier {
                 } label: {
                     URLImage(systemName: "ellipsis.circle.fill")
                 }
-                
+#endif
             }
         }
         .foregroundColor(.blue)

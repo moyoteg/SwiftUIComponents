@@ -11,6 +11,7 @@ import UIKit
 import CloudyLogs
 import Introspect
 
+#if !os(watchOS)
 public extension View {
     
     func secureToggle(foregroundColor: Color = .blue) -> some View {
@@ -64,4 +65,4 @@ public struct SecureToggle: ViewModifier {
         }
     }
 }
-
+#endif

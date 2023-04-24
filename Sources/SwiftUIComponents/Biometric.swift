@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-#if !os(tvOS)
+#if !os(tvOS) && !os(watchOS)
 import LocalAuthentication
 
 import SwiftUtilities

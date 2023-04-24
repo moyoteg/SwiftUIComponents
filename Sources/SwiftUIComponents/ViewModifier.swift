@@ -40,7 +40,9 @@
                         }
                     }
                 }
+#if !os(watchOS)
                 .listStyle(GroupedListStyle())
+#endif
             }
             
             public init() {}

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-#if os(iOS) || os(watchOS)
+#if os(iOS) || !os(watchOS)
 import WebKit
 
 public struct HTMLView: View {

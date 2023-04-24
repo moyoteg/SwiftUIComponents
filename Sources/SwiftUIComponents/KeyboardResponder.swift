@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import Combine
 
-#if os(iOS) || os(watchOS)
+#if os(iOS) || !os(watchOS)
 
 final class KeyboardResponder: ObservableObject {
     let didChange = PassthroughSubject<CGFloat, Never>()

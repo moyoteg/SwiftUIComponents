@@ -9,6 +9,7 @@ import SwiftUI
 
 import SwiftUtilities
 
+#if !os(watchOS)
 public struct Reachability: View {
     
     public enum Transport {
@@ -65,3 +66,4 @@ public struct Reachability: View {
         self.transport = transport
     }
 }
+#endif
