@@ -112,15 +112,23 @@ public struct URLImage: View {
               systemImage
             } else {
                 placeholderImage
-                    .animatingMask(maskWidth: 200, isMasked: true)
+                    .resizable()
+                    .scaledToFit()
+                    .animatingMask(isMasked: true)
+                    .padding()
             }
             
             if viewModel.isLoading {
                 ZStack {
+                    
                     ProgressView()
                         .scaledToFill()
+                    
                     placeholderImage
-                    .animatingMask(maskWidth: 200, isMasked: true)
+                        .resizable()
+                        .scaledToFit()
+                        .animatingMask(isMasked: true)
+                        .padding()
                 }
             }
         }

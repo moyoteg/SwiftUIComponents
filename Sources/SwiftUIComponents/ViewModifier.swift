@@ -28,14 +28,14 @@
                     Section(header: Text("Animating Mask")) {
                         VStack {
                             Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer eget arcu sit amet tellus auctor consequat. Praesent et leo quam. Etiam rutrum magna at risus lobortis ornare. Sed eu turpis justo. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vivamus feugiat eros in nisl vulputate, vel interdum turpis sagittis. Proin ullamcorper sapien risus, non accumsan leo ultrices ac.")
-                                .animatingMask(maskWidth: 200, isMasked: isTextMasked)
+                                .animatingMask(isMasked: isTextMasked)
                             Toggle("Mask Text", isOn: $isTextMasked)
                             
                             Image(systemName: "sun.max.fill")
                                 .resizable()
                                 .frame(width: 100, height: 100)
                                 .foregroundColor(.yellow)
-                                .animatingMask(maskWidth: 200, isMasked: isImageMasked)
+                                .animatingMask(isMasked: isImageMasked)
                             Toggle("Mask Image", isOn: $isImageMasked)
                         }
                     }
@@ -81,37 +81,40 @@
         
         struct AnimatingMask: ViewModifier {
             @State private var maskPosition: CGFloat = -100
-            let maskWidth: CGFloat
             let isMasked: Bool
             
             func body(content: Content) -> some View {
                 if isMasked {
-                    content
-                        .mask(
-                            Rectangle()
-                                .fill(
-                                    LinearGradient(
-                                        gradient: Gradient(stops: [
-                                            .init(color: Color.clear, location: 0),
-                                            .init(color: Color.black.opacity(0.5), location: 0.5),
-                                            .init(color: Color.clear, location: 1)
-                                        ]),
-                                        startPoint: .leading,
-                                        endPoint: .trailing
+                    GeometryReader { geometry in
+                        
+                        content
+                            .mask(
+                                
+                                Rectangle()
+                                    .fill(
+                                        LinearGradient(
+                                            gradient: Gradient(stops: [
+                                                .init(color: Color.clear, location: 0),
+                                                .init(color: Color.black.opacity(0.5), location: 0.5),
+                                                .init(color: Color.clear, location: 1)
+                                            ]),
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
                                     )
-                                )
-                                .frame(width: maskWidth, height: 100)
-                                .offset(x: maskPosition)
-                        )
-                        .opacity(isMasked ? 1 : 0)
-                        .onAppear {
-                            withAnimation(Animation.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-                                maskPosition = maskWidth
+                                    .frame(width: geometry.size.width, height: geometry.size.height)
+                                    .offset(x: maskPosition)
+                            )
+                            .opacity(isMasked ? 1 : 0)
+                            .onAppear {
+                                withAnimation(Animation.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                                    maskPosition = geometry.size.width
+                                }
                             }
-                        }
-                        .onDisappear {
-                            maskPosition = -100
-                        }
+                            .onDisappear {
+                                maskPosition = -geometry.size.height
+                            }
+                    }
                 } else {
                     content
                 }
@@ -125,8 +128,8 @@
             modifier(Modifier.ClearButton(text: text))
         }
         
-        public func animatingMask(maskWidth: CGFloat, isAnimated: Bool = true, isMasked: Bool = true) -> some View {
-            modifier(Modifier.AnimatingMask(maskWidth: maskWidth, isMasked: isMasked))
+        public func animatingMask(isAnimated: Bool = true, isMasked: Bool = true) -> some View {
+            modifier(Modifier.AnimatingMask(isMasked: isMasked))
         }
     }
 
