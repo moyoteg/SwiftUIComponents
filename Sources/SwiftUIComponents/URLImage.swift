@@ -111,11 +111,7 @@ public struct URLImage: View {
             }else if systemImage != nil {
               systemImage
             } else {
-                placeholderImage
-                    .resizable()
-                    .scaledToFit()
-                    .animatingMask(isMasked: true)
-                    .padding()
+                placeholderImageView()
             }
             
             if viewModel.isLoading {
@@ -124,11 +120,7 @@ public struct URLImage: View {
                     ProgressView()
                         .scaledToFill()
                     
-                    placeholderImage
-                        .resizable()
-                        .scaledToFit()
-                        .animatingMask(isMasked: true)
-                        .padding()
+                    placeholderImageView()
                 }
             }
         }
@@ -138,6 +130,17 @@ public struct URLImage: View {
         .onDisappear {
             viewModel.stopTimer()
         }
+    }
+    
+    @ViewBuilder
+    func placeholderImageView() -> some View {
+        
+        placeholderImage
+            .resizable()
+            .scaledToFit()
+            .animatingMask(isMasked: true)
+            .opacity(0.5)
+            .padding()
     }
     
     public struct Demo: View {
