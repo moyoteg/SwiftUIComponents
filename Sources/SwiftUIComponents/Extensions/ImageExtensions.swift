@@ -17,7 +17,7 @@ public extension Image {
         if let uiImage = UIImage(named: named) {
             return SwiftUI.Image(uiImage: uiImage)
         } else {
-            return SwiftUI.Image(systemName: "circle.slash")
+            return SwiftUI.Image("circle.slash")
         }
     }
 }

@@ -18,15 +18,15 @@ public struct Reachability: View {
         
         var connectedImage: Image {
             switch self {
-            case .wifi: return Image(systemName: "wifi")
-            case .cellular: return Image(systemName: "antenna.radiowaves.left.and.right")
+            case .wifi: return Image("wifi")
+            case .cellular: return Image("antenna.radiowaves.left.and.right")
             }
         }
         
         var disconnectedImage: Image {
             switch self {
-            case .wifi: return Image(systemName: "wifi.slash")
-            case .cellular: return Image(systemName: "antenna.radiowaves.left.and.right.slash")
+            case .wifi: return Image("wifi.slash")
+            case .cellular: return Image("antenna.radiowaves.left.and.right.slash")
             }
         }
         
@@ -51,7 +51,7 @@ public struct Reachability: View {
         case .none:
             switch SwiftUtilities.Reachability.currentStatus {
             case .notReachable:
-                Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                Image("antenna.radiowaves.left.and.right.slash")
             case .reachableViaWWAN:
                 Transport.cellular.connectedStatusImage(isConnected: networkReachability.reachable)
                     .padding()

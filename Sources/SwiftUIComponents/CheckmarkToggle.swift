@@ -16,7 +16,7 @@ public struct CheckmarkToggle: View {
         Button(action: {
             isChecked.toggle()
         }) {
-            URLImage(systemName: isChecked ? "checkmark.square" : "square")
+            AutoImage(isChecked ? "checkmark.square" : "square")
                 .font(.system(size: 44, weight: .light))
         }
     }

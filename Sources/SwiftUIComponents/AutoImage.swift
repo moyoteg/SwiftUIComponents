@@ -1,5 +1,5 @@
 //
-//  URLImage.swift
+// AutoImage.swift
 //  
 //
 //  Created by Moi Gutierrez on 4/18/23.
@@ -8,19 +8,21 @@
 import SwiftUI
 import Combine
 
-public struct URLImage: View {
+import CloudyLogs
+
+public struct AutoImage: View {
+    
     class ViewModel: ObservableObject {
+        
         @Published var image: UIImage? = nil
         @Published var isLoading = false
         
-        private let url: URL?
-        private let localImageName: String?
         private var cancellables = Set<AnyCancellable>()
         private var timer: Timer?
+        private let any: Any?
         
-        init(url: URL?, localImageName: String? = nil) {
-            self.url = url
-            self.localImageName = localImageName
+        init(any: Any? = nil) {
+            self.any = any
             loadImage()
         }
         
@@ -37,98 +39,100 @@ public struct URLImage: View {
         }
         
         func loadImage() {
-            guard let url = url else {
-                image = loadImageFromLocal()
-                return
-            }
-            isLoading = true
-            
-            URLSession.shared.dataTaskPublisher(for: url)
-                .map { UIImage(data: $0.data) }
-                .replaceError(with: nil)
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] image in
-                    self?.isLoading = false
-                    if let image = image {
-                        self?.image = image
-                    } else {
-                        self?.image = self?.loadImageFromLocal()
+
+            if let url = any as? URL { // if URL
+                
+                Logger.log("AutoImage: ViewModel: loadImage(): URL provided for image: \(url)")
+                
+                isLoading = true
+                
+                URLSession.shared.dataTaskPublisher(for: url)
+                    .map { UIImage(data: $0.data) }
+                    .replaceError(with: nil)
+                    .receive(on: DispatchQueue.main)
+                    .sink { [weak self] image in
+                        self?.isLoading = false
+                        if let image = image {
+                            self?.image = image
+                        } else {
+                            Logger.log("AutoImage: ViewModel: loadImage(): failed to load URL provided, loadImageFromLocal(): \(url)")
+
+                            self?.image = self?.loadImageFromLocal()
+                        }
                     }
-                }
-                .store(in: &cancellables)
+                    .store(in: &cancellables)
+                
+            } else {
+                
+                Logger.log("AutoImage: ViewModel: loadImage(): NO URL provided: \(any.debugDescription)")
+                
+                self.image = self.loadImageFromLocal()
+            }
         }
         
-        private func loadImageFromLocal() -> UIImage? {
-            guard let imageName = localImageName else { return nil }
-            return UIImage(named: imageName)
+        func loadImageFromLocal() -> UIImage? {
+            
+            if let stringName = any as? String { // if string
+            
+                Logger.log("AutoImage: ViewModel: loadImageFromLocal(): NO URL provided: \(any.debugDescription)")
+                
+                if let localImage = UIImage(named: stringName) { // if local image
+
+                    Logger.log("AutoImage: ViewModel: loadImageFromLocal(): localImage: \(localImage)")
+
+                    return localImage
+                    
+                } else if let systemImage = UIImage(systemName: stringName) { // if system image
+                    
+                    Logger.log("AutoImage: ViewModel: loadImageFromLocal(): systemImage: \(systemImage)")
+                    
+                    return systemImage
+                    
+                }
+            }
+            return nil
         }
+        
     }
     
+    // ********************************
     @StateObject private var viewModel: ViewModel
     
-    private let systemImage: Image?
+    private var renderingMode: Image.TemplateRenderingMode = .original
+    
     private let placeholderImage: Image
-    private let url: URL?
     
     private var isResizable = false
     
-    public init(systemName: String? = nil,
-                url: URL? = nil,
-                localImageName: String? = nil,
-                placeholderImage: Image = Image(systemName: "photo")) {
-        self.url = url
-        if let systemName = systemName {
-            self.systemImage = Image(systemName: systemName)
-        } else {
-            self.systemImage = nil
-        }
-        self.placeholderImage = placeholderImage
-        _viewModel = StateObject(wrappedValue: ViewModel(url: url, localImageName: localImageName))
-    }
-    
-    public func resizable() -> URLImage {
-        var view = self
-        view.isResizable = true
-        return view
-    }
-    
     public var body: some View {
+        
         ZStack {
+            
             if let image = viewModel.image {
                 Image(uiImage: image)
+                    .renderingMode(renderingMode)
                     .resizableIf(isResizable)
-                    .renderingMode(.original)
                     .aspectRatio(contentMode: .fill)
                     .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-                    .clipped()
-                    .overlay(
-                        Color.clear
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                viewModel.loadImage()
-                            }
-                    )
-            }else if systemImage != nil {
-              systemImage
+                
             } else {
-                placeholderImageView()
-            }
-            
-            if viewModel.isLoading {
-                ZStack {
+                
+                if viewModel.isLoading {
                     
                     ProgressView()
                         .scaledToFill()
-                    
-                    placeholderImageView()
                 }
+                
+                placeholderImageView()
+                    .animatingMask(isMasked: true)
             }
+            
         }
         .onAppear {
-            viewModel.startTimer()
+            self.viewModel.startTimer()
         }
         .onDisappear {
-            viewModel.stopTimer()
+            self.viewModel.stopTimer()
         }
     }
     
@@ -137,13 +141,42 @@ public struct URLImage: View {
         
         placeholderImage
             .resizable()
-            .scaledToFit()
-            .animatingMask(isMasked: true)
+            .aspectRatio(contentMode: .fill)
             .opacity(0.5)
             .padding()
+            .overlay(
+                Color.clear
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        self.viewModel.loadImage()
+                    }
+            )
     }
     
-    public struct Demo: View {
+    public init(
+                placeholderImage: Image = Image("photo"),
+                _ any: Any? = nil) {
+        self.placeholderImage = placeholderImage
+        _viewModel = StateObject(wrappedValue: ViewModel(any: any))
+    }
+    
+    public func resizable() -> AutoImage {
+        var view = self
+        view.isResizable = true
+        return view
+    }
+    
+    public func renderingMode(_ renderingMode: Image.TemplateRenderingMode) -> Self {
+        var view = self
+        view.renderingMode = renderingMode
+        return view
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+public extension AutoImage {
+    
+    struct Demo: View {
         
         public var body: some View {
             List {
@@ -153,7 +186,7 @@ public struct URLImage: View {
                     VStack(spacing: 5) {
                         HStack {
                             Spacer()
-                            URLImage(url: URL(string: "https://via.placeholder.com/150"))
+                            AutoImage(URL(string: "https://via.placeholder.com/150"))
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 150, height: 150)
                             Spacer()
@@ -171,7 +204,7 @@ public struct URLImage: View {
                     VStack(spacing: 5) {
                         HStack {
                             Spacer()
-                            URLImage(url: nil, localImageName: "AppIcon")
+                            AutoImage("AppIcon")
                             Spacer()
                         }
                         Text("Local Image")
@@ -187,7 +220,7 @@ public struct URLImage: View {
                     VStack(spacing: 5) {
                         HStack {
                             Spacer()
-                            URLImage(url: nil, localImageName: "nonexistent")
+                            AutoImage("nonexistent")
                                 .font(.largeTitle)
                             Spacer()
                         }
@@ -204,7 +237,7 @@ public struct URLImage: View {
                     VStack(spacing: 5) {
                         HStack {
                             Spacer()
-                            URLImage(url: URL(string: "https://invalid-url.example.com/image.jpg"))
+                            AutoImage(URL(string: "https://invalid-url.example.com/image.jpg"))
                                 .font(.largeTitle)
                             Spacer()
                         }
@@ -222,7 +255,7 @@ public struct URLImage: View {
                         HStack {
                             Spacer()
                             Button(action: {}) {
-                                URLImage(url: URL(string: "https://via.placeholder.com/150"))
+                                AutoImage(URL(string: "https://via.placeholder.com/150"))
                                     .resizable()
                                     .frame(width: 150, height: 150)
                                     .clipShape(Circle())
@@ -242,7 +275,7 @@ public struct URLImage: View {
                     VStack(spacing: 5) {
                         HStack {
                             Spacer()
-                            URLImage(systemName: "star.fill")
+                            AutoImage("star.fill")
                                 .font(.largeTitle)
                             Spacer()
                         }
@@ -258,16 +291,14 @@ public struct URLImage: View {
         
         public init(){}
     }
-
-
 }
 
-struct URLImage_Previews: PreviewProvider {
+struct AutoImage_Previews: PreviewProvider {
     static var previews: some View {
         VStack(alignment: .leading, spacing: 20) {
             // Scenario 1: Image loaded from URL
             VStack {
-                URLImage(url: URL(string: "https://via.placeholder.com/150"))
+                AutoImage(URL(string: "https://via.placeholder.com/150"))
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 150, height: 150)
                 Text("URL Image")
@@ -275,7 +306,7 @@ struct URLImage_Previews: PreviewProvider {
             
             // Scenario 2: Image loaded from local assets
             VStack {
-                URLImage(url: nil, localImageName: "interest1")
+                AutoImage("interest1")
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 150, height: 150)
                 Text("Local Image")
@@ -283,7 +314,7 @@ struct URLImage_Previews: PreviewProvider {
             
             // Scenario 3: URL is nil and local image is not found (shows placeholder image)
             VStack {
-                URLImage(url: nil, localImageName: "nonexistent")
+                AutoImage("nonexistent")
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 150, height: 150)
                 Text("Placeholder Image")
@@ -291,7 +322,7 @@ struct URLImage_Previews: PreviewProvider {
             
             // Scenario 4: URL is not reachable (shows placeholder image)
             VStack {
-                URLImage(url: URL(string: "https://invalid-url.example.com/image.jpg"))
+                AutoImage(URL(string: "https://invalid-url.example.com/image.jpg"))
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 150, height: 150)
                 Text("Invalid URL")

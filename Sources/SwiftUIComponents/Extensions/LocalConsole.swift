@@ -334,7 +334,7 @@ struct LocalConsole: ViewModifier {
                         }
                     } label: {
                         Text("\(isHidden ? "un-hide":"hide")")
-                        URLImage(systemName: isHidden ? "eye.slash": "eye")
+                        AutoImage(isHidden ? "eye.slash": "eye")
                     }
                     
                     Menu("filters") {
@@ -346,7 +346,7 @@ struct LocalConsole: ViewModifier {
 //                                }
 //                            } label: {
 //                                Text("\(isHidden ? "un-hide":"hide")")
-//                                URLImage(systemName: isHidden ? "eye.slash": "eye")
+//                               AutoImage(isHidden ? "eye.slash": "eye")
 //                            }
 //                        }
                         
@@ -375,14 +375,14 @@ struct LocalConsole: ViewModifier {
                             opacity = 1.0
                         } label: {
                             Text("100%")
-                            URLImage(systemName: "cube.transparent.fill")
+                            AutoImage("cube.transparent.fill")
                         }
                         
                         Button {
                             opacity = 0.5
                         } label: {
                             Text("50%")
-                            URLImage(systemName: "cube.transparent")
+                            AutoImage("cube.transparent")
                         }
                     }
 
@@ -408,7 +408,7 @@ struct LocalConsole: ViewModifier {
                     
                     
                 } label: {
-                    URLImage(systemName: "ellipsis.circle.fill")
+                    AutoImage("ellipsis.circle.fill")
                 }
 #endif
             }

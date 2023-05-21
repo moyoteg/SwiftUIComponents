@@ -18,10 +18,10 @@ public extension Biometric {
     static var image: Image {
                 
         switch Biometric.type {
-        case .none: return SwiftUI.Image(systemName: "questionmark.app.dashed")
-        case .touchID: return SwiftUI.Image(systemName: "touchid")
-        case .faceID: return SwiftUI.Image(systemName: "faceid")
-        @unknown default: return SwiftUI.Image(systemName: "questionmark.app.dashed")
+        case .none: return SwiftUI.Image("questionmark.app.dashed")
+        case .touchID: return SwiftUI.Image("touchid")
+        case .faceID: return SwiftUI.Image("faceid")
+        @unknown default: return SwiftUI.Image("questionmark.app.dashed")
         }
     }
     
