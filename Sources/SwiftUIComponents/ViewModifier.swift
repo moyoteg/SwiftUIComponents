@@ -31,7 +31,8 @@ public enum Modifier {
                             .animatingMask(isMasked: isTextMasked)
                         Toggle("Mask Text", isOn: $isTextMasked)
                         
-                        Image("sun.max.fill")
+                        AutoImage("sun.max.fill")
+                            .renderingMode(.template)
                             .resizable()
                             .frame(width: 100, height: 100)
                             .foregroundColor(.yellow)

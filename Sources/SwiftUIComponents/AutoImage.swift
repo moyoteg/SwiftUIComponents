@@ -17,12 +17,14 @@ public struct AutoImage: View {
         @Published var image: UIImage? = nil
         @Published var isLoading = false
         
+        private var useSystemImage: Bool
         private var cancellables = Set<AnyCancellable>()
         private var timer: Timer?
-        private let any: Any?
+        let any: Any?
         
-        init(any: Any? = nil) {
+        init(any: Any? = nil, useSystemImage: Bool) {
             self.any = any
+            self.useSystemImage = useSystemImage
             loadImage()
         }
         
@@ -40,6 +42,17 @@ public struct AutoImage: View {
         
         func loadImage() {
 
+            if useSystemImage {
+                
+                Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: \(any.debugDescription)")
+
+                if let stringName = any as? String, // if string
+                   let systemImage = UIImage(systemName: stringName) {
+                    self.image = systemImage
+                    return
+                }
+            }
+            
             if let url = any as? URL { // if URL
                 
                 Logger.log("AutoImage: ViewModel: loadImage(): URL provided for image: \(url)")
@@ -96,7 +109,7 @@ public struct AutoImage: View {
     }
     
     // ********************************
-    @StateObject private var viewModel: ViewModel
+    @ObservedObject private var viewModel: ViewModel
     
     private var renderingMode: Image.TemplateRenderingMode = .original
     
@@ -125,6 +138,15 @@ public struct AutoImage: View {
                 
                 placeholderImageView()
                     .animatingMask(isMasked: true)
+                    .padding()
+                    .overlay(
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                Logger.log("tapped to load image: \(self.viewModel.any.debugDescription)")
+                                self.viewModel.loadImage()
+                            }
+                    )
             }
             
         }
@@ -140,24 +162,20 @@ public struct AutoImage: View {
     func placeholderImageView() -> some View {
         
         placeholderImage
+            .renderingMode(.template)
             .resizable()
             .aspectRatio(contentMode: .fill)
             .opacity(0.5)
-            .padding()
-            .overlay(
-                Color.clear
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        self.viewModel.loadImage()
-                    }
-            )
+
     }
     
     public init(
-                placeholderImage: Image = Image("photo"),
-                _ any: Any? = nil) {
+        placeholderImage: Image = Image(systemName: "photo"),
+                _ any: Any? = nil,
+        useSystemImage: Bool = false
+    ) {
         self.placeholderImage = placeholderImage
-        _viewModel = StateObject(wrappedValue: ViewModel(any: any))
+        viewModel = ViewModel(any: any, useSystemImage: useSystemImage)
     }
     
     public func resizable() -> AutoImage {
