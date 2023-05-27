@@ -51,7 +51,7 @@ public struct FilteredList<Element: StringFilterable,
         
         VStack {
             HStack {
-                AutoImage("magnifyingglass")
+                Image(systemName: "magnifyingglass")
                 Text("(\(filterText.isEmpty ? "\(list.count)":"\(filteredList.count)"))")
                     .font(.system(.caption))
                 TextField("filter", text: $filterText.animation(.spring()))
