@@ -37,8 +37,7 @@ public struct ClearButton: ViewModifier {
                     self.text = ""
                 }
             }) {
-                AutoImage("delete.left")
-                    .renderingMode(.template)
+                Image(systemName: "delete.left")
                     .foregroundColor(foregroundColor)
             }
             .opacity(text.isEmpty ? 0:1)

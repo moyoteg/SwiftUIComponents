@@ -10,15 +10,17 @@ import SwiftUI
 public struct PageControl: View {
     
     @Binding var currentpage: Int
-    @Binding var pageCount: Int
+    var pageCount: Int
     @Binding var isSelecting: Bool
-
+    
     var pageControlColor: Color
     var selectionColor: Color
     var blurRadius: CGFloat
-
-    // visuals
-    let pageControlSize: CGFloat = 8
+    
+    var buttonShape: AnyShape
+    var buttonColor: (Int) -> Color
+    
+    var pageControlSize: CGSize = .init(width: 8, height: 8)
     
     public var body: some View {
         
@@ -36,17 +38,17 @@ public struct PageControl: View {
                     }
                 }) {
                     if (currentpage == row) {
-                        Circle()
+                        buttonShape
                             .fill(selectionColor)
-                            .frame(width: pageControlSize,
-                                   height: pageControlSize,
-                                   alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
+                            .frame(width: pageControlSize.width,
+                                   height: pageControlSize.height,
+                                   alignment: .center)
                     } else {
-                        Circle()
-                            .fill(pageControlColor.opacity(0.5))
-                            .frame(width: pageControlSize,
-                                   height: pageControlSize,
-                                   alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)
+                        buttonShape
+                            .fill(buttonColor(row).opacity(0.5))
+                            .frame(width: pageControlSize.width,
+                                   height: pageControlSize.height,
+                                   alignment: .center)
                     }
                 }
                 .transition(.scale(scale: 2.0))

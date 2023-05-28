@@ -10,15 +10,15 @@ import AVFoundation
 
 #if !os(tvOS)
 
-public struct PagesView<Content: View>: View {
-
+public struct PagesView<Data, Content: View>: View where Data: RandomAccessCollection, Data.Element: Identifiable {
+    
     public enum SelectionDirection {
         case horizontal
         // TODO: implement
         case vertical
     }
     
-    @Binding var pageCount: Int
+    var data: Data
     @Binding var currentIndex: Int
     @Binding var isSelecting: Bool
     @GestureState private var translation: CGFloat = 0
@@ -29,8 +29,12 @@ public struct PagesView<Content: View>: View {
     
     var selectionDirection: SelectionDirection
     let selectionTolerance: CGFloat = 0.1
-    let content: Content
+    let content: (Data.Element) -> Content
     let animationsDuration = 0.3
+    
+    var buttonShape: AnyShape
+    var buttonColor: (Int) -> Color
+    var pageControlSize: CGSize
     
     public var body: some View {
         
@@ -38,8 +42,10 @@ public struct PagesView<Content: View>: View {
             
             ZStack {
                 HStack(spacing: 8) {
-                    self.content
-                        .frame(width: geometry.size.width)
+                    ForEach(data) { item in
+                        self.content(item)
+                            .frame(width: geometry.size.width)
+                    }
                 }
                 .frame(width: geometry.size.width, alignment: .leading)
                 .offset(x: -CGFloat(self.currentIndex) * geometry.size.width)
@@ -50,7 +56,7 @@ public struct PagesView<Content: View>: View {
                         .onChanged({ (value) in
                             
                             // if there is only one page don't enable interaction
-                            if pageCount <= 1 { return }
+                            if data.count <= 1 { return }
                             
                             // check if translating in "selection direction"
                             switch selectionDirection {
@@ -73,75 +79,84 @@ public struct PagesView<Content: View>: View {
                         .updating(self.$translation) { value, state, _ in
                             
                             // if there is only one page don't enable interaction
-                            if pageCount <= 1 { return }
+                            if data.count <= 1 { return }
                             
                             state = value.translation.width
-
+                            
                         }.onEnded { value in
                             let offset = value.translation.width / geometry.size.width
                             let newIndex = Int((CGFloat(self.currentIndex) - offset).rounded())
                             withAnimation {
-                                self.currentIndex = min(max(newIndex, 0), self.pageCount - 1)
+                                self.currentIndex = min(max(newIndex, 0), data.count - 1)
                                 DispatchQueue.main
                                     .asyncAfter(deadline: .now() + animationsDuration) {
-                                    update(selectingState: false)
-                                }
+                                        update(selectingState: false)
+                                    }
                             }
-
+                            
                         }
-                    )
+                )
                 
                 VStack {
                     Spacer()
-                    PageControl(currentpage: $currentIndex,
-                                pageCount: $pageCount,
-                                isSelecting: $isSelecting,
-                                pageControlColor: pageControlColor,
-                                selectionColor: selectionColor,
-                                blurRadius: blurRadius)
-                        .scaleEffect(
-                            CGSize(width: isSelecting ? 2.0:1.0,
-                                   height: isSelecting ? 2.0:1.0)
-                        )
+                    PageControl(
+                        currentpage: $currentIndex,
+                        pageCount: data.count,
+                        isSelecting: $isSelecting,
+                        pageControlColor: pageControlColor,
+                        selectionColor: selectionColor,
+                        blurRadius: blurRadius,
+                        buttonShape: buttonShape,
+                        buttonColor: buttonColor,
+                        pageControlSize: pageControlSize
+                    )
+                    .scaleEffect(
+                        CGSize(width: isSelecting ? 2.0:1.0,
+                               height: isSelecting ? 2.0:1.0)
+                    )
                 }
                 .padding()
             }
         }
     }
     
-    public init(pageCount: Binding<Int>,
-         currentIndex: Binding<Int>,
-         isSelecting: Binding<Bool>,
-         selectionDirection: SelectionDirection = .horizontal,
-         pageControlColor: Color = .white,
-         selectionColor: Color = .blue,
-         blurRadius: CGFloat = 20.0,
-         @ViewBuilder content: () -> Content) {
-        self._pageCount = pageCount
+    public init(data: Data,
+                currentIndex: Binding<Int>,
+                isSelecting: Binding<Bool>,
+                selectionDirection: SelectionDirection = .horizontal,
+                pageControlColor: Color = .white,
+                selectionColor: Color = .blue,
+                blurRadius: CGFloat = 20.0,
+                buttonShape: AnyShape,
+                buttonColor: @escaping (Int) -> Color,
+                pageControlSize: CGSize,
+                @ViewBuilder content: @escaping (Data.Element) -> Content
+    ) {
+        self.data = data
         self._currentIndex = currentIndex
         self._isSelecting = isSelecting
         self.selectionDirection = selectionDirection
-        self.content = content()
+        self.content = content
         self.pageControlColor = pageControlColor
         self.selectionColor = selectionColor
         self.blurRadius = blurRadius
+        self.buttonShape = buttonShape
+        self.buttonColor = buttonColor
+        self.pageControlSize = pageControlSize
     }
     
     private func update(selectingState: Bool) {
         if selectingState != isSelecting {
             isSelecting = selectingState
-            #if !os(watchOS)
-            UIImpactFeedbackGenerator().impactOccurred(intensity: .infinity)
-            AudioServicesPlaySystemSound(UInt32(1104))
-            #endif
         }
     }
     
     private func percentageOf(width: CGFloat,
-                                      startLocation: CGFloat,
-                                      newLocation: CGFloat) -> CGFloat {
+                              startLocation: CGFloat,
+                              newLocation: CGFloat) -> CGFloat {
         let percentage = abs(startLocation - newLocation) / width
         return percentage
     }
 }
+
 #endif

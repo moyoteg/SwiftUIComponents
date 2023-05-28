@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "SwiftUIComponents",
     platforms: [
-        .iOS("15"),
-        .macOS("13.1"),
-        .tvOS("15"),
+        .iOS("16"),
+        .macOS("14"),
+        .tvOS("16"),
         .watchOS(.v7),
     ],
     products: [

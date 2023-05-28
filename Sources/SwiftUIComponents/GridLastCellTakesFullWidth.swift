@@ -10,36 +10,37 @@ import SwiftUI
 public struct GridLastCellTakesFullWidth<Data: RandomAccessCollection, Content: View>: View where Data.Element: Identifiable & Hashable {
     let data: Data
     let columns: [GridItem]
+    let spacing: CGFloat
     let content: (Data.Element) -> Content
     
     public var body: some View {
         ScrollView {
             if data.count % 2 != 0 {
-                LazyVGrid(columns: columns, alignment: .center, spacing: 10) {
+                LazyVGrid(columns: columns, alignment: .center, spacing: spacing) {
                     ForEach(data.dropLast().array ?? [], id: \.self) { item in
                         content(item)
                     }
                 }
-                LazyVGrid(columns: [GridItem(.flexible())], alignment: .center, spacing: 10) {
+                LazyVGrid(columns: [GridItem(.flexible())], alignment: .center, spacing: spacing) {
                     ForEach(data.suffix(1).array ?? [], id: \.self) { item in
                         content(item)
                             .frame(maxWidth: .infinity)
                     }
                 }
             } else {
-                LazyVGrid(columns: columns, alignment: .center, spacing: 10) {
+                LazyVGrid(columns: columns, alignment: .center, spacing: spacing) {
                     ForEach(data.array ?? [], id: \.self) { item in
                         content(item)
                     }
                 }
             }
         }
-        .padding()
     }
     
-    public init(data: Data, columns: [GridItem], @ViewBuilder content: @escaping (Data.Element) -> Content) {
+    public init(data: Data, columns: [GridItem], spacing: CGFloat, @ViewBuilder content: @escaping (Data.Element) -> Content) {
         self.data = data
         self.columns = columns
+        self.spacing = spacing
         self.content = content
     }
 }
@@ -61,7 +62,7 @@ public struct Example_GridLastCellTakesFullWidth: View {
     let columns = Array(repeating: GridItem(.flexible()), count: 2)
     
     public var body: some View {
-        GridLastCellTakesFullWidth(data: data, columns: columns) { item in
+        GridLastCellTakesFullWidth(data: data, columns: columns, spacing: 8) { item in
             Text("\(item.number)")
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
                 .background(Color.blue)
