@@ -9,6 +9,7 @@ import SwiftUI
 import Combine
 
 import CloudyLogs
+import CachedAsyncImage
 
 public struct AutoImage: View {
     
@@ -49,11 +50,13 @@ public struct AutoImage: View {
                 if let stringName = any as? String, // if string
                    let systemImage = UIImage(systemName: stringName) {
                     self.image = systemImage
+                    Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: ✅ sucess: \(any.debugDescription)")
                     return
                 }
             }
             
-            if let url = any as? URL { // if URL
+            if let string = any as? String,
+               let url = URL(string: string) { // if URL
                 
                 Logger.log("AutoImage: ViewModel: loadImage(): URL provided for image: \(url)")
                 
@@ -119,24 +122,20 @@ public struct AutoImage: View {
     
     public var body: some View {
         
-        ZStack {
+        if let string = self.viewModel.any as? String,
+           string.isValidURL == true,
+           let url = URL(string: string) {
             
-            if let image = viewModel.image {
-                Image(uiImage: image)
+            CachedAsyncImage(url: url) { phase in
+            if let image = phase.image {
+                image // Displays the loaded image.
                     .renderingMode(renderingMode)
                     .resizableIf(isResizable)
-                    .aspectRatio(contentMode: .fill)
-                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-                
-            } else {
-                
-                if viewModel.isLoading {
-                    
-                    ProgressView()
-                        .scaledToFill()
-                }
-                
+                    .aspectRatio(contentMode: .fit)
+            } else if phase.error != nil {
+                // Indicates an error.
                 placeholderImageView()
+                    .aspectRatio(contentMode: .fit)
                     .animatingMask(isMasked: true)
                     .padding()
                     .overlay(
@@ -147,14 +146,51 @@ public struct AutoImage: View {
                                 self.viewModel.loadImage()
                             }
                     )
+            } else {
+                placeholderImageView()
+            }
+        }
+        } else {
+         
+            ZStack {
+                
+                if let image = viewModel.image {
+                    
+                    Image(uiImage: image)
+                        .renderingMode(renderingMode)
+                        .resizableIf(isResizable)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                    
+                } else {
+                    
+                    if viewModel.isLoading {
+                        
+                        ProgressView()
+                            .scaledToFill()
+                    }
+                    
+                    placeholderImageView()
+                        .animatingMask(isMasked: true)
+                        .padding()
+                        .overlay(
+                            Color.clear
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    Logger.log("tapped to load image: \(self.viewModel.any.debugDescription)")
+                                    self.viewModel.loadImage()
+                                }
+                        )
+                }
+                
+            }
+            .onAppear {
+                self.viewModel.startTimer()
+            }
+            .onDisappear {
+                self.viewModel.stopTimer()
             }
             
-        }
-        .onAppear {
-            self.viewModel.startTimer()
-        }
-        .onDisappear {
-            self.viewModel.stopTimer()
         }
     }
     
@@ -164,7 +200,7 @@ public struct AutoImage: View {
         placeholderImage
             .renderingMode(.template)
             .resizable()
-            .aspectRatio(contentMode: .fill)
+            .aspectRatio(contentMode: .fit)
             .opacity(0.5)
 
     }
@@ -204,7 +240,7 @@ public extension AutoImage {
                     VStack(spacing: 5) {
                         HStack {
                             Spacer()
-                            AutoImage(URL(string: "https://via.placeholder.com/150"))
+                            AutoImage("https://via.placeholder.com/150")
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 150, height: 150)
                             Spacer()
@@ -293,7 +329,7 @@ public extension AutoImage {
                     VStack(spacing: 5) {
                         HStack {
                             Spacer()
-                            AutoImage("star.fill")
+                            AutoImage("star.fill", useSystemImage: true)
                                 .font(.largeTitle)
                             Spacer()
                         }

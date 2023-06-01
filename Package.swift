@@ -32,6 +32,8 @@ let package = Package(
         .package(name: "Introspect", url: "https://github.com/moyoteg/SwiftUI-Introspect", .branch("master")),
 //        .package(name: "FlowGrid", url: "https://github.com/moyoteg/FlowGrid", .branch("master")),
         .package(name: "SwiftUI-Flow", url: "https://github.com/moyoteg/SwiftUI-Flow", .branch("main")),
+        .package(name: "CachedAsyncImage", url: "https://github.com/lorenzofiamingo/swiftui-cached-async-image", .branch("main")),
+        
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -68,6 +70,7 @@ let package = Package(
                 "Introspect",
 //                "FlowGrid",
                 .product(name: "Flow", package: "SwiftUI-Flow"),
+                "CachedAsyncImage",
             ]
         ),
         

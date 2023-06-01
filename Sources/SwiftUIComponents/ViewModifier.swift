@@ -135,3 +135,115 @@ extension View {
     }
 }
 
+public struct GradientMaskModifier: ViewModifier {
+    let colors: [Color]
+    
+    public func body(content: Content) -> some View {
+        content
+            .mask(LinearGradient(
+                gradient: Gradient(colors: colors),
+                startPoint: .top,
+                endPoint: .bottom
+            ))
+    }
+}
+
+public extension View {
+    func gradientMask(colors: [Color] = [.clear, .black.opacity(0.5), .green.opacity(0.5)]) -> some View {
+        self.modifier(GradientMaskModifier(colors: colors))
+    }
+}
+
+
+public struct BackgroundImageFillBlur: ViewModifier {
+    
+    let imageResource: String
+    let height: Double
+    
+    public func body(content: Content) -> some View {
+        
+        content
+            .background(
+                
+                ZStack {
+                    
+                    AutoImage(imageResource)
+                        .resizable()
+                        .scaledToFill()
+                        .edgesIgnoringSafeArea(.all)
+                        .blur(radius: 20)
+                    
+                    AutoImage(imageResource)
+                        .resizable()
+                        .scaledToFill()
+                        .edgesIgnoringSafeArea(.all)
+                        .frame(height: height, alignment: .center)
+                        .mask(Rectangle().edgesIgnoringSafeArea(.top))
+                    
+                }
+                    .padding(0)
+            )
+    }
+}
+
+public extension View {
+    func backgroundImageFillBlur(imageResource: String, height: Double) -> some View {
+        self.modifier(BackgroundImageFillBlur(imageResource: imageResource, height: height))
+    }
+}
+
+
+// MARK: - TopImageFillModifier
+
+public struct TopImageFillModifier<Header: View>: ViewModifier {
+    let imageResource: String
+    let height: Double
+    let header: () -> Header
+    
+    public init(imageResource: String, height: Double, @ViewBuilder header: @escaping () -> Header) {
+        self.imageResource = imageResource
+        self.height = height
+        self.header = header
+    }
+    
+    public func body(content: Content) -> some View {
+        content
+            .modifier(TopImageFill(imageResource: imageResource, height: height, header: header))
+    }
+}
+
+extension View {
+    public func topImageFill<Header: View>(imageResource: String, height: Double, @ViewBuilder header: @escaping () -> Header) -> some View {
+        self.modifier(TopImageFillModifier(imageResource: imageResource, height: height, header: header))
+    }
+}
+
+public struct TopImageFill<Header: View>: ViewModifier {
+    let imageResource: String
+    let height: Double
+    let header: () -> Header
+    
+    public init(imageResource: String, height: Double, @ViewBuilder header: @escaping () -> Header) {
+        self.imageResource = imageResource
+        self.height = height
+        self.header = header
+    }
+    
+    public func body(content: Content) -> some View {
+        VStack {
+
+            VStack {
+                header()
+                    .frame(height: height)
+            }
+            .backgroundImageFillBlur(imageResource: imageResource, height: height)
+            .listRowInsets(EdgeInsets())
+            
+            content
+                .textCase(nil)
+                .listRowInsets(EdgeInsets())
+                .navigationBarTitleDisplayMode(.automatic)
+                .listStyle(PlainListStyle())
+        }
+    }
+}
