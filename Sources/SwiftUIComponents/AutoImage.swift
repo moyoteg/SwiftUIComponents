@@ -137,7 +137,6 @@ public struct AutoImage: View {
                 placeholderImageView()
                     .aspectRatio(contentMode: .fit)
                     .animatingMask(isMasked: true)
-                    .padding()
                     .overlay(
                         Color.clear
                             .contentShape(Rectangle())
@@ -172,7 +171,6 @@ public struct AutoImage: View {
                     
                     placeholderImageView()
                         .animatingMask(isMasked: true)
-                        .padding()
                         .overlay(
                             Color.clear
                                 .contentShape(Rectangle())
@@ -202,7 +200,7 @@ public struct AutoImage: View {
             .resizable()
             .aspectRatio(contentMode: .fit)
             .opacity(0.5)
-
+            .padding()
     }
     
     public init(

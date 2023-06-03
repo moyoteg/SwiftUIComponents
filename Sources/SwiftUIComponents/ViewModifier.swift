@@ -158,7 +158,6 @@ public extension View {
 public struct BackgroundImageFillBlur: ViewModifier {
     
     let imageResource: String
-    let height: Double
     
     public func body(content: Content) -> some View {
         
@@ -177,7 +176,7 @@ public struct BackgroundImageFillBlur: ViewModifier {
                         .resizable()
                         .scaledToFill()
                         .edgesIgnoringSafeArea(.all)
-                        .frame(height: height, alignment: .center)
+                        .frame(alignment: .center)
                         .mask(Rectangle().edgesIgnoringSafeArea(.top))
                     
                 }
@@ -187,8 +186,8 @@ public struct BackgroundImageFillBlur: ViewModifier {
 }
 
 public extension View {
-    func backgroundImageFillBlur(imageResource: String, height: Double) -> some View {
-        self.modifier(BackgroundImageFillBlur(imageResource: imageResource, height: height))
+    func backgroundImageFillBlur(imageResource: String) -> some View {
+        self.modifier(BackgroundImageFillBlur(imageResource: imageResource))
     }
 }
 
@@ -234,9 +233,9 @@ public struct TopImageFill<Header: View>: ViewModifier {
 
             VStack {
                 header()
-                    .frame(height: height)
             }
-            .backgroundImageFillBlur(imageResource: imageResource, height: height)
+            .frame(height: height)
+            .backgroundImageFillBlur(imageResource: imageResource)
             .listRowInsets(EdgeInsets())
             
             content
