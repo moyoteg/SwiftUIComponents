@@ -71,7 +71,7 @@ public enum Modifier {
                             self.text = ""
                         }
                     }) {
-                        AutoImage("delete.left")
+                        Image("delete.left")
                             .foregroundColor(Color.blue)
                     }
                     .padding()
