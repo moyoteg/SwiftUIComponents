@@ -164,7 +164,7 @@ public struct BackgroundImageFillBlur: ViewModifier {
         content
             .background(
                 
-                ZStack {
+                ZStack(alignment: .top) {
                     
                     AutoImage(imageResource)
                         .resizable()
