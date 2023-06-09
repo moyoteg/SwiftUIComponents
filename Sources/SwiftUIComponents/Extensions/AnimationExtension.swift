@@ -16,3 +16,26 @@ public extension Animation {
         }
     }
 }
+
+public struct Shake: AnimatableModifier {
+    public var shakes: CGFloat = 0
+    
+    public var animatableData: CGFloat {
+        get {
+            shakes
+        } set {
+            shakes = newValue
+        }
+    }
+    
+    public func body(content: Content) -> some View {
+        content
+            .offset(x: sin(shakes * .pi * 2) * 5)
+    }
+}
+
+public extension View {
+    func shake(with shakes: CGFloat) -> some View {
+        modifier(Shake(shakes: shakes))
+    }
+}
