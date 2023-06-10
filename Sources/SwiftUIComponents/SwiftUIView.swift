@@ -31,25 +31,28 @@ struct SwiftUIView_Previews: PreviewProvider {
 }
 
 // Based on https://picsum.photos API
-enum Picsum {
+public enum Picsum {
     
-    enum ImageTopics: String {
+    public enum ImageTopics: String, CaseIterable {
+        
+        // Add more image topics as needed
         case interest
         case profile
-        // Add more image topics as needed
-        
-        static func random() -> ImageTopics {
-            let allTopics: [ImageTopics] = [.interest, .profile]
-            let randomIndex = Int.random(in: 0..<allTopics.count)
-            return allTopics[randomIndex]
+        case mountain
+        case flower
+        case water
+                
+        public static func random() -> ImageTopics {
+            let randomIndex = Int.random(in: 0..<ImageTopics.allCases.count)
+            return ImageTopics.allCases[randomIndex]
         }
         
-        static func randomAsString() -> String {
+        public static func randomAsString() -> String {
             return ImageTopics.random().rawValue
         }
     }
     
-    static var stringURLs: [String] {
+    public static var stringURLs: [String] {
         var stringURLs = [String]()
         for _ in 1...100 {
             let randomTopic = ImageTopics.randomAsString()
@@ -59,12 +62,12 @@ enum Picsum {
         return stringURLs
     }
     
-    static func generateRandomImageURL(topic: String, width: Int = 600, height: Int = 600) -> String {
+    public static func generateRandomImageURL(topic: String, width: Int = 600, height: Int = 600) -> String {
         let randomNumber = Int.random(in: 1...1000)
         return "https://picsum.photos/seed/\(topic)/\(width)/\(height)?random=\(randomNumber)"
     }
     
-    static func generateRandomImageURL() -> String {
+    public static func generateRandomImageURL() -> String {
         Picsum.generateRandomImageURL(topic: Picsum.ImageTopics.randomAsString())
     }
 }
