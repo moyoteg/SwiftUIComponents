@@ -37,7 +37,8 @@ public enum Picsum {
         
         // Add more image topics as needed
         case interest
-        case profile
+        case person
+        case travel
         case mountain
         case flower
         case water
@@ -65,6 +66,10 @@ public enum Picsum {
     public static func generateRandomImageURL(topic: String, width: Int = 600, height: Int = 600) -> String {
         let randomNumber = Int.random(in: 1...1000)
         return "https://picsum.photos/seed/\(topic)/\(width)/\(height)?random=\(randomNumber)"
+    }
+    
+    public static func generateRandomTopicImageURL(topic: String = Picsum.ImageTopics.randomAsString(), width: Int = 600, height: Int = 600) -> String {
+        return "https://picsum.photos/seed/\(topic)/\(width)/\(height)"
     }
     
     public static func generateRandomImageURL() -> String {
