@@ -24,33 +24,17 @@ struct PicsumView: View {
     }
 }
 
-struct SwiftUIView_Previews: PreviewProvider {
+struct PicsumView_Previews: PreviewProvider {
     static var previews: some View {
         PicsumView()
     }
 }
 
 // Based on https://picsum.photos API
-public enum Picsum {
-    
-    public enum ImageTopics: String, CaseIterable {
-        
-        // Add more image topics as needed
-        case interest
-        case person
-        case travel
-        case mountain
-        case flower
-        case water
-                
-        public static func random() -> ImageTopics {
-            let randomIndex = Int.random(in: 0..<ImageTopics.allCases.count)
-            return ImageTopics.allCases[randomIndex]
-        }
-        
-        public static func randomAsString() -> String {
-            return ImageTopics.random().rawValue
-        }
+public enum Picsum: RandomImageGenerator {
+
+    static func generateRandomImageURL(topic: String, size: ImagePlaceholderGenerator.ImageSize) -> String {
+        return Picsum.generateRandomImageURL(topic: topic, width: size.width, height: size.height)
     }
     
     public static var stringURLs: [String] {
@@ -68,11 +52,11 @@ public enum Picsum {
         return "https://picsum.photos/seed/\(topic)/\(width)/\(height)?random=\(randomNumber)"
     }
     
-    public static func generateRandomTopicImageURL(topic: String = Picsum.ImageTopics.randomAsString(), width: Int = 600, height: Int = 600) -> String {
+    public static func generateRandomTopicImageURL(topic: String = ImageTopics.randomAsString(), width: Int = 600, height: Int = 600) -> String {
         return "https://picsum.photos/seed/\(topic)/\(width)/\(height)"
     }
     
     public static func generateRandomImageURL() -> String {
-        Picsum.generateRandomImageURL(topic: Picsum.ImageTopics.randomAsString())
+        Picsum.generateRandomImageURL(topic: ImageTopics.randomAsString())
     }
 }
