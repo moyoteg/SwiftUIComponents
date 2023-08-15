@@ -7,12 +7,12 @@
 
 import Foundation
 
-protocol RandomImageGenerator {
+public protocol RandomImageGenerator {
     
     static func generateRandomImageURL(topic: String, size: ImagePlaceholderGenerator.ImageSize) -> String
 }
 
-public class ImagePlaceholderGenerator {
+public struct ImagePlaceholderGenerator {
     
     public enum ImageSize {
         case small
@@ -45,17 +45,9 @@ public class ImagePlaceholderGenerator {
             return "\(width)/\(height)"
         }
     }
-
-    public enum ImageURLStrings {
-        public enum Version {
-            case remote
-            case loremIpsumAPI
-            case loremFlickrAPI
-        }
-    }
     
-    public static func generateURL(for version: ImageURLStrings.Version, topic: ImageTopics) -> String? {
-        switch version {
+    public static func generateURL(provider: Demo.Data.ImageURLStrings.Provider, topic: ImageTopics) -> String? {
+        switch provider {
         case .remote:
             return nil
         case .loremIpsumAPI:
@@ -65,8 +57,8 @@ public class ImagePlaceholderGenerator {
         }
     }
     
-    public static func generateRandomImageURL(version: ImageURLStrings.Version, topic: String, width: Int = 600, height: Int = 600) -> String {
-        switch version {
+    public static func generateRandomImageURL(provider: Demo.Data.ImageURLStrings.Provider, topic: String, width: Int = 600, height: Int = 600) -> String {
+        switch provider {
         case .remote:
             return "https://example.com/\(width)/\(height)" // Replace "https://example.com" with the appropriate remote URL
             
@@ -88,9 +80,10 @@ public protocol ImageVersionable {
 
 public extension ImageVersionable {
     var value: String {
-        switch Demo.Data.imageURLStringsVersion {
+        // get 
+        switch Demo.Data.Image.urlStringsProvider {
         case .remote: return value
-        case .loremIpsum: return Picsum.generateRandomTopicImageURL()
+        case .loremIpsumAPI: return Picsum.generateRandomTopicImageURL()
         case .loremFlickrAPI: return LoremFlickrAPI.generateRandomImageURL(topic: topic, size: .large)
         }
     }
@@ -106,10 +99,10 @@ public extension Demo.Data {
     
     enum ImageURLStrings {
         
-        public enum Version {
+        public enum Provider {
             
             case remote
-            case loremIpsum // https://picsum.photos
+            case loremIpsumAPI // https://picsum.photos
             case loremFlickrAPI
             
         }
@@ -130,17 +123,7 @@ public extension Demo.Data {
             }
         }
         
-        static var stringURLs: [String] {
-            var stringURLs = [String]()
-            for _ in 1...100 {
-                let randomTopic = ImageTopics.randomAsString()
-                let randomURL = generateRandomImageURL(topic: randomTopic)
-                stringURLs.insert(randomURL, at: 0)
-            }
-            return stringURLs
-        }
-        
-        static func generateRandomImageURL(topic: String, width: Int = 600, height: Int = 600) -> String {
+        public static func generateRandomImageURL(topic: String, width: Int = 600, height: Int = 600) -> String {
             let randomNumber = Int.random(in: 1...1000)
             return "https://picsum.photos/seed/\(topic)/\(width)/\(height)?random=\(randomNumber)"
         }

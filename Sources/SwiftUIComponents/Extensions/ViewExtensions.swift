@@ -579,3 +579,93 @@ public extension Modifier {
         }
     }
 }
+
+public struct NavigationConfigurator: UIViewControllerRepresentable {
+    public var configure: (UINavigationController) -> Void = { _ in }
+    
+    public func makeUIViewController(context: UIViewControllerRepresentableContext<NavigationConfigurator>) -> UIViewController {
+        UIViewController()
+    }
+    
+    public func updateUIViewController(_ uiViewController: UIViewController, context: UIViewControllerRepresentableContext<NavigationConfigurator>) {
+        if let nc = uiViewController.navigationController {
+            self.configure(nc)
+        }
+    }
+    
+}
+
+public struct ListSeparatorStyle: ViewModifier {
+    
+    let style: UITableViewCell.SeparatorStyle
+    
+    public func body(content: Content) -> some View {
+        content
+            .introspectTableView { tableView in
+                tableView.separatorStyle = .none
+            }
+    }
+}
+
+public extension View {
+    
+    func listSeparator(style: UITableViewCell.SeparatorStyle) -> some View {
+        ModifiedContent(content: self, modifier: ListSeparatorStyle(style: style))
+    }
+}
+
+/// Custom vertical scroll view with centered content vertically
+///
+struct VScrollView<Content>: View where Content: View {
+    var showsIndicators: Bool
+    @ViewBuilder let content: Content
+    
+    var body: some View {
+        GeometryReader { geometry in
+            ScrollView(.vertical, showsIndicators: showsIndicators) {
+                content
+                    .frame(width: geometry.size.width)
+                    .frame(minHeight: geometry.size.height)
+            }
+        }
+    }
+}
+
+// Mark: - Overlay Gradient Focus
+
+public struct OverlayGradientFocusModifier: ViewModifier {
+    public enum FocusPosition {
+        case top, center, bottom
+    }
+    
+    public var position: FocusPosition
+    public var gradientColor: Color
+    
+    public init(position: FocusPosition, gradientColor: Color = .black) {
+        self.position = position
+        self.gradientColor = gradientColor
+    }
+    
+    public func body(content: Content) -> some View {
+        content.overlay(
+            LinearGradient(
+                gradient: Gradient(colors:[
+                    gradientColor.opacity(position == .top ? 0:0.5),
+                    gradientColor.opacity(position == .center ? 0:0.5),
+                    gradientColor.opacity(position == .bottom ? 0:0.5),
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+}
+
+public extension View {
+    func overlayGradientFocus(position: OverlayGradientFocusModifier.FocusPosition, gradientColor: Color = .black) -> some View {
+        self.modifier(OverlayGradientFocusModifier(position: position, gradientColor: gradientColor))
+    }
+}
+
+
+

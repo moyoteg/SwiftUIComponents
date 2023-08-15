@@ -33,7 +33,7 @@ struct PicsumView_Previews: PreviewProvider {
 // Based on https://picsum.photos API
 public enum Picsum: RandomImageGenerator {
 
-    static func generateRandomImageURL(topic: String, size: ImagePlaceholderGenerator.ImageSize) -> String {
+    public static func generateRandomImageURL(topic: String, size: ImagePlaceholderGenerator.ImageSize) -> String {
         return Picsum.generateRandomImageURL(topic: topic, width: size.width, height: size.height)
     }
     

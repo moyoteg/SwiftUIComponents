@@ -8,28 +8,39 @@
 import Foundation
 import SwiftUI
 
-public struct Demo {
+import SwiftyUserDefaults
+
+public class Demo: ObservableObject {
     
-    public struct Mode {
+    public class Data: ObservableObject {
         
-        public struct UI: View {
+        public enum SourceLocation: String, Codable, DefaultsSerializable, CaseIterable {
             
-            public var body: some View {
-                // TODO: create demo view
-                Text("demo mode")
-            }
-        }
-    }
-    
-    public struct Data {
-        
-        enum Version {
+            public static var _defaults: DefaultsCodableBridge<Self> { return DefaultsCodableBridge() }
+            public static var _defaultsArray: DefaultsCodableBridge<[Self]> { return DefaultsCodableBridge() }
             
             case local
             case remote
         }
         
-        static let version: Demo.Data.Version = .remote
-        static var imageURLStringsVersion: Demo.Data.ImageURLStrings.Version = .loremFlickrAPI
+        public struct Image {
+         
+            public static var urlStringsProvider: Demo.Data.ImageURLStrings.Provider = .loremFlickrAPI
+        }
+
+        @Published public var sourceLocation: Demo.Data.SourceLocation
+        @Published public var imageURLStringsProvider: Demo.Data.ImageURLStrings.Provider
+        
+        public init(sourceLocation: Demo.Data.SourceLocation = .remote, imageURLStringsProvider: Demo.Data.ImageURLStrings.Provider = .loremFlickrAPI) {
+            self.sourceLocation = sourceLocation
+            self.imageURLStringsProvider = imageURLStringsProvider
+        }
+    }
+    
+    @Published public var data: Data
+    
+    public init(data: Demo.Data = Data()) {
+        self.data = data
+    
     }
 }

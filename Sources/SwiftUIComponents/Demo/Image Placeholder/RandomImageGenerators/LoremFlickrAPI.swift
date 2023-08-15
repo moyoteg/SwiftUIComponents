@@ -25,7 +25,7 @@ struct LoremFlickrAPIView: View {
 
 public struct LoremFlickrAPI: RandomImageGenerator {
     
-    static func generateRandomImageURL(topic: String, size: ImagePlaceholderGenerator.ImageSize) -> String {
+    public static func generateRandomImageURL(topic: String, size: ImagePlaceholderGenerator.ImageSize) -> String {
         return LoremFlickrAPI.generateImageURL(topic: topic, size: size, tag: nil, lock: false, isRandom: false)
     }
     
