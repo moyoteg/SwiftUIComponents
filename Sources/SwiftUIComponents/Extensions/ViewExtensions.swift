@@ -616,11 +616,11 @@ public extension View {
 
 /// Custom vertical scroll view with centered content vertically
 ///
-struct VScrollView<Content>: View where Content: View {
+public struct VScrollView<Content>: View where Content: View {
     var showsIndicators: Bool
     @ViewBuilder let content: Content
     
-    var body: some View {
+    public var body: some View {
         GeometryReader { geometry in
             ScrollView(.vertical, showsIndicators: showsIndicators) {
                 content
@@ -628,6 +628,11 @@ struct VScrollView<Content>: View where Content: View {
                     .frame(minHeight: geometry.size.height)
             }
         }
+    }
+    
+    public init(showsIndicators: Bool = true, @ViewBuilder content: @escaping () -> Content) {
+        self.showsIndicators = showsIndicators
+        self.content = content()
     }
 }
 
@@ -650,9 +655,9 @@ public struct OverlayGradientFocusModifier: ViewModifier {
         content.overlay(
             LinearGradient(
                 gradient: Gradient(colors:[
-                    gradientColor.opacity(position == .top ? 0:0.5),
-                    gradientColor.opacity(position == .center ? 0:0.5),
-                    gradientColor.opacity(position == .bottom ? 0:0.5),
+                    gradientColor.opacity(position == .top ? 0:0.75),
+                    gradientColor.opacity(position == .center ? 0:0.75),
+                    gradientColor.opacity(position == .bottom ? 0:0.75),
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -666,6 +671,4 @@ public extension View {
         self.modifier(OverlayGradientFocusModifier(position: position, gradientColor: gradientColor))
     }
 }
-
-
 

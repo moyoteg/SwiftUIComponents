@@ -93,11 +93,12 @@ public enum Modifier {
                             Rectangle()
                                 .fill(
                                     LinearGradient(
-                                        gradient: Gradient(stops: [
-                                            .init(color: Color.clear, location: 0),
-                                            .init(color: Color.black.opacity(0.5), location: 0.5),
-                                            .init(color: Color.clear, location: 1)
-                                        ]),
+                                        gradient: Gradient(colors: [
+                                            Color.clear,
+                                            Color.black.opacity(1),
+                                            Color.clear,
+                                        ])
+                                        ,
                                         startPoint: .leading,
                                         endPoint: .trailing
                                     )
@@ -106,7 +107,7 @@ public enum Modifier {
                                 .offset(x: maskPosition)
                                 .onAppear {
                                     maskPosition = -geometry.size.width
-                                    withAnimation(Animation.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                                    withAnimation(Animation.easeInOut(duration: 1.8).repeatForever(autoreverses: true)) {
                                         maskPosition = geometry.size.width
                                     }
                                 }
