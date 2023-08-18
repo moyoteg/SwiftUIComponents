@@ -94,9 +94,9 @@ public enum Modifier {
                                 .fill(
                                     LinearGradient(
                                         gradient: Gradient(colors: [
-                                            Color.clear,
+                                            Color.white.opacity(0.1),
                                             Color.black.opacity(1),
-                                            Color.clear,
+                                            Color.white.opacity(0.1),
                                         ])
                                         ,
                                         startPoint: .leading,
@@ -179,6 +179,7 @@ public struct BackgroundImageFillBlur: ViewModifier {
                         .edgesIgnoringSafeArea(.all)
                         .frame(alignment: .center)
                         .mask(Rectangle().edgesIgnoringSafeArea(.top))
+                        .overlayGradientFocus(position: .top)
                     
                 }
                     .padding(0)
