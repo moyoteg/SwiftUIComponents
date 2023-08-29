@@ -672,3 +672,198 @@ public extension View {
     }
 }
 
+public extension View {
+    func glow(color: Color = .red, radius: CGFloat = 20) -> some View {
+        self
+            .shadow(color: color, radius: radius / 3)
+            .shadow(color: color, radius: radius / 3)
+            .shadow(color: color, radius: radius / 3)
+    }
+}
+
+public extension View {
+    func multicolorGlow() -> some View {
+        ZStack {
+            ForEach(0..<2) { i in
+                Rectangle()
+                    .fill(AngularGradient(gradient: Gradient(colors: [.red, .yellow, .green, .blue, .purple, .red]), center: .center))
+                    .frame(width: 400, height: 300)
+                    .mask(self.blur(radius: 20))
+                    .overlay(self.blur(radius: 5 - CGFloat(i * 5)))
+            }
+        }
+    }
+}
+
+public extension View {
+    func innerShadow<S: Shape>(using shape: S, angle: Angle = .degrees(0), color: Color = .black, width: CGFloat = 6, blur: CGFloat = 6) -> some View {
+        return self
+    }
+}
+
+public struct AnimatedImageViewModifier: ViewModifier {
+    let imageName: String
+    let duration: Double
+    
+    @State private var offset: CGFloat = 0
+    
+    public func body(content: Content) -> some View {
+        content
+            .background(
+                GeometryReader { proxy in
+                    Image(imageName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: proxy.size.width)
+                        .offset(y: -offset)
+                        .animation(
+                            Animation.easeInOut(duration: duration)
+                                .repeatForever(autoreverses: true)
+                            , value: UUID()
+                        )
+                        .onAppear {
+                            offset = proxy.size.height
+                        }
+                }
+            )
+    }
+}
+
+public extension View {
+    func animatedImage(imageName: String, duration: Double = 1.0) -> some View {
+        self.modifier(AnimatedImageViewModifier(imageName: imageName, duration: duration))
+    }
+}
+
+// 
+public struct CircularMaskWithProgress: ViewModifier {
+    @State private var progress: CGFloat = 0.0
+    
+    public func body(content: Content) -> some View {
+        ZStack {
+            Circle()
+                .trim(from: 0.0, to: progress)
+                .stroke(style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
+                .foregroundColor(.blue)
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 2.0), value: UUID())
+                .onAppear() {
+                    progress = 1.0
+                }
+            content.mask(Circle())
+        }
+    }
+}
+
+public extension View {
+    func circularMaskWithProgress() -> some View {
+        modifier(CircularMaskWithProgress())
+    }
+}
+
+/// This is the old (iOS 13) version.
+/// This has a "bug" where adding a second finger freezes the touch event.
+/// However, according to Apple, this "bug" is intended.
+/// In the new iOS 14 version, we use GestureState instead, which gets around this "bug"
+/// Forums post (with Apple reply): https://developer.apple.com/forums/thread/660070
+/// New iOS 14 version: https://gist.github.com/aheze/3d5820c03616d25e21376ad561798e9e
+/// if you're on iPad Swift Playgrounds and you put all of this code in a seperate file,
+/// you need to make everything public so that the compiler detects it.
+/// the possible states of the button
+public enum ButtonState {
+    case pressed
+    case notPressed
+}
+
+/// ViewModifier allows us to get a view, then modify it and return it
+@available(iOS 13.0, *)
+public struct TouchDownUpEventModifier: ViewModifier {
+    
+    /// Later, .onChanged will be called multiple times (around 10 times a second once your finger touches down)
+    /// so we need a variable to keep track of the first time your finger touches down...
+    /// ... we then set this to false when your finger lifts up, so the cycle can repeat again
+    @State private var pressed = false
+    
+    /// this is the closure that will get passed around.
+    /// we will update the ButtonState every time your finger touches down or up.
+    let changeState: (ButtonState) -> Void
+    
+    /// a required function for ViewModifier.
+    /// content is the body content of the caller view
+    public func body(content: Content) -> some View {
+        
+        /// prepare to add the gesture to the the body content
+        content
+        
+        /// we need to detect both .onChanged and .onEnded
+        /// so we modify the original content by adding a gesture to it
+            .gesture(DragGesture(minimumDistance: 0)
+                     
+                     /// equivalent to UIKit's Touch Down event, but is called continuously once your finger moves while still on the screen.
+                     /// It will be called a lot, so we need a bool to make sure we change the state only when your finger first touches down
+                .onChanged { _ in
+                    
+                    /// this will make sure that we only pass the new state one time
+                    if !self.pressed {
+                        
+                        /// we lock the state to "pressed" so that it won't be set continuously by .onChanged. We will enable it to be changed once the user lifts their finger.
+                        self.pressed = true
+                        
+                        /// pass the new state to the caller
+                        self.changeState(ButtonState.pressed)
+                    }
+                }
+                     
+                     
+                     /// equivalent to both UIKit's Touch Up Inside and Touch Up Outside event
+                .onEnded { _ in
+                    
+                    /// we enable "pressed" to be changed now to allow another cycle of finger down/up events.
+                    self.pressed = false
+                    
+                    /// pass the new state to the caller
+                    self.changeState(ButtonState.notPressed)
+                }
+            )
+    }
+    
+    /// if you're on iPad Swift Playgrounds and you put all of this code in a seperate file,
+    /// you need to add a public init so that the compiler detects it.
+    public init(changeState: @escaping (ButtonState) -> Void) {
+        self.changeState = changeState
+    }
+}
+
+
+/// we can make the modifier more Swifter by wrapping it in a method...
+/// ... then making the method an extension of View, so we can easily add it to any SwiftUI view
+public extension View {
+    func onTouchDownUpEvent(changeState: @escaping (ButtonState) -> Void) -> some View {
+        modifier(TouchDownUpEventModifier(changeState: changeState))
+    }
+}
+
+// See `View.onChange(of: value, perform: action)` for more information
+struct ChangeObserver<Base: View, Value: Equatable>: View {
+    let base: Base
+    let value: Value
+    let action: (Value)->Void
+    
+    let model = Model()
+    
+    var body: some View {
+        if model.update(value: value) {
+            DispatchQueue.main.async { self.action(self.value) }
+        }
+        return base
+    }
+    
+    class Model {
+        private var savedValue: Value?
+        func update(value: Value) -> Bool {
+            guard value != savedValue else { return false }
+            savedValue = value
+            return true
+        }
+    }
+}

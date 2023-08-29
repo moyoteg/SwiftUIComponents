@@ -248,3 +248,49 @@ public struct TopImageFill<Header: View>: ViewModifier {
         }
     }
 }
+
+public extension View {
+    func tagImage(imageResource: String, foregroundColor: Color, shadowColor: Color) -> some View {
+        self.modifier(TagImage(imageResource: imageResource, foregroundColor: foregroundColor, shadowColor: shadowColor))
+    }
+}
+
+public struct TagImage: ViewModifier {
+    
+    public var imageResource: String
+    public var foregroundColor: Color
+    public var shadowColor: Color
+    
+    public func body(content: Content) -> some View {
+        
+        ZStack {
+            
+            content
+            
+            VStack {
+                
+                Spacer()
+                
+                HStack {
+                    
+                    AutoImage(imageResource)
+                        .resizable()
+                        .renderingMode(.template)
+                        .foregroundColor(foregroundColor.opacity(0.5))
+                        .frame(width: 12, height: 12)
+                        .shadow(color: shadowColor, radius: 5)
+                    
+                    Spacer()
+                }
+            }
+            .padding(4)
+        }
+    }
+}
+
+struct TagImage_Previews: PreviewProvider {
+    static var previews: some View {
+        Text("Hello, world!")
+            .modifier(TagImage(imageResource: "car", foregroundColor: .white, shadowColor: .green))
+    }
+}

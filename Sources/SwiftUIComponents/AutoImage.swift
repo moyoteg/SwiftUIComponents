@@ -56,13 +56,15 @@ public struct AutoImage: View {
             }
             
             if let string = any as? String,
+               string.contains("http") == true,
                let url = URL(string: string) { // if URL
                 
                 Logger.log("AutoImage: ViewModel: loadImage(): URL provided for image: \(url)")
                 
                 isLoading = true
                 
-                URLSession.shared.dataTaskPublisher(for: url)
+                URLSession.shared
+                    .dataTaskPublisher(for: url)
                     .map { UIImage(data: $0.data) }
                     .replaceError(with: nil)
                     .receive(on: DispatchQueue.main)
