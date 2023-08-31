@@ -250,7 +250,7 @@ public struct TopImageFill<Header: View>: ViewModifier {
 }
 
 public extension View {
-    func tagImage(imageResource: String, foregroundColor: Color, shadowColor: Color) -> some View {
+    func tagImage(imageResource: String, foregroundColor: Color, shadowColor: Color = .black) -> some View {
         self.modifier(TagImage(imageResource: imageResource, foregroundColor: foregroundColor, shadowColor: shadowColor))
     }
 }
@@ -277,7 +277,7 @@ public struct TagImage: ViewModifier {
                         .resizable()
                         .renderingMode(.template)
                         .foregroundColor(foregroundColor.opacity(0.5))
-                        .frame(width: 12, height: 12)
+                        .frame(width: 24, height: 24)
                         .shadow(color: shadowColor, radius: 5)
                     
                     Spacer()
