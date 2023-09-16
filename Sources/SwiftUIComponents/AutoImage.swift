@@ -10,12 +10,83 @@ import Combine
 
 import CloudyLogs
 import CachedAsyncImage
+import Firebase
+import FirebaseStorage
+import SDWebImageSwiftUI
+
+// ETag Cache Manager
+class ETagCacheManager {
+    static let shared = ETagCacheManager()
+    private init() {}
+    
+    private var cache: [URL: String] = [:]
+    
+    func add(_ eTag: String, for url: URL) {
+        cache[url] = eTag
+    }
+    
+    func eTag(for url: URL) -> String? {
+        return cache[url]
+    }
+}
+
+// Image Cache Manager
+class ImageCacheManager {
+    static let shared = ImageCacheManager()
+    private init() {}
+    
+    private var cache: NSCache<NSURL, UIImage> = NSCache()
+    
+    func add(_ image: UIImage, for url: URL) {
+        cache.setObject(image, forKey: url as NSURL)
+    }
+    
+    func image(for url: URL) -> UIImage? {
+        return cache.object(forKey: url as NSURL)
+    }
+}
 
 public struct AutoImage: View {
     
     class ViewModel: ObservableObject {
         
-        @Published var image: UIImage? = nil
+        @Published var image: Image? = nil {
+            didSet {
+                self.stopTimer()
+            }
+        }
+        @Published var url: URL? = nil {
+            didSet {
+                guard let url = url else { return }
+                
+                if let cachedImage = ImageCacheManager.shared.image(for: url) {
+                    self.image = Image(uiImage: cachedImage)
+                    return
+                }
+                
+                var request = URLRequest(url: url)
+                if let eTag = ETagCacheManager.shared.eTag(for: url) {
+                    request.addValue(eTag, forHTTPHeaderField: "If-None-Match")
+                }
+                
+                URLSession.shared.dataTaskPublisher(for: request)
+                    .tryMap { output in
+                        if let response = output.response as? HTTPURLResponse, let eTag = response.allHeaderFields["Etag"] as? String {
+                            ETagCacheManager.shared.add(eTag, for: url)
+                        }
+                        return UIImage(data: output.data)!
+                    }
+                    .receive(on: DispatchQueue.main)
+                    .replaceError(with: nil)
+                    .sink { [weak self] (downloadedImage: UIImage?) in
+                        if let uiImage = downloadedImage {
+                            ImageCacheManager.shared.add(uiImage, for: url)
+                        }
+                        self?.image = downloadedImage.map(Image.init(uiImage:))
+                    }
+                    .store(in: &cancellables)
+            }
+        }
         @Published var isLoading = false
         
         private var useSystemImage: Bool
@@ -23,16 +94,17 @@ public struct AutoImage: View {
         private var timer: Timer?
         let any: Any?
         
+        @ObservedObject var imageManager = ImageManager()
+
         init(any: Any? = nil, useSystemImage: Bool) {
             self.any = any
             self.useSystemImage = useSystemImage
-            loadImage()
         }
         
         func startTimer() {
             guard timer == nil else { return }
             timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-                self?.loadImage()
+                self?.figureOutImage()
             }
         }
         
@@ -41,76 +113,124 @@ public struct AutoImage: View {
             timer = nil
         }
         
-        func loadImage() {
-
+        func figureOutImage() {
+            
+            if let _ = image {
+                // image already loaded
+                return
+            }
+            
+            // 1.- System Image
             if useSystemImage {
-                
                 Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: \(any.debugDescription)")
-
-                if let stringName = any as? String, // if string
+                
+                if let stringName = any as? String,
                    let systemImage = UIImage(systemName: stringName) {
-                    self.image = systemImage
-                    Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: ✅ sucess: \(any.debugDescription)")
+                    self.image = Image(uiImage: systemImage)
+                    Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: ✅ success: \(any.debugDescription)")
                     return
                 }
             }
             
-            if let string = any as? String,
-               string.contains("http") == true,
-               let url = URL(string: string) { // if URL
+            // 2.- URL
+            if let string = any as? String, string.contains("gs://") {
+                
+                Logger.log("AutoImage: ViewModel: loadImage(): Firebase path provided for image: \(string)")
+                loadImageFromFirebase(path: string)
+                
+            } else if let string = any as? String,
+                      string.contains("http"),
+                      let url = URL(string: string) {
                 
                 Logger.log("AutoImage: ViewModel: loadImage(): URL provided for image: \(url)")
                 
-                isLoading = true
+                self.url = url
+                self.imageManager.load(url: url)
+            }
+            else {
                 
-                URLSession.shared
-                    .dataTaskPublisher(for: url)
-                    .map { UIImage(data: $0.data) }
-                    .replaceError(with: nil)
-                    .receive(on: DispatchQueue.main)
-                    .sink { [weak self] image in
-                        self?.isLoading = false
-                        if let image = image {
-                            self?.image = image
-                        } else {
-                            Logger.log("AutoImage: ViewModel: loadImage(): failed to load URL provided, loadImageFromLocal(): \(url)")
-
-                            self?.image = self?.loadImageFromLocal()
-                        }
-                    }
-                    .store(in: &cancellables)
-                
-            } else {
-                
+                // 3.- load from local assets
                 Logger.log("AutoImage: ViewModel: loadImage(): NO URL provided: \(any.debugDescription)")
-                
-                self.image = self.loadImageFromLocal()
+                self.image = loadImageFromLocal()
             }
         }
         
-        func loadImageFromLocal() -> UIImage? {
+        func loadImageFromFirebase(path: String) {
             
-            if let stringName = any as? String { // if string
+            isLoading = true
+                                    
+            let storageRef = Storage.storage().reference(forURL: path)
+            storageRef.getData(maxSize: 15 * 1024 * 1024) { [weak self] data, error in
+                self?.isLoading = false
+                if let error = error {
+                    Logger.log("AutoImage: ViewModel: loadImageFromFirebase(): Error fetching image from Firebase: \(error.localizedDescription)", logType: .error)
+                    self?.image = self?.loadImageFromLocal()
+                    return
+                }
+                
+                guard let imageData = data else {
+                    Logger.log("AutoImage: ViewModel: loadImageFromFirebase(): Data is nil. Failed to retrieve image data from Firebase.", logType: .error)
+                    self?.image = self?.loadImageFromLocal()
+                    return
+                }
+                
+                guard let image = UIImage(data: imageData) else {
+                    Logger.log("AutoImage: ViewModel: loadImageFromFirebase(): Failed to convert data into UIImage.", logType: .error)
+                    self?.image = self?.loadImageFromLocal()
+                    return
+                }
+                
+                self?.image = Image(uiImage: image)
+                Logger.log("AutoImage: ViewModel: loadImageFromFirebase(): Successfully loaded image from Firebase.", logType: .success)
+            }
+        }
+        
+        func loadImageFromFirebase(path: String, completion: @escaping (UIImage?) -> Void) {
+            let storageRef = Storage.storage().reference(forURL: path)
             
+            // Fetch the download URL
+            storageRef.downloadURL { url, error in
+                if let error = error {
+                    print("Failed to get download URL: \(error)")
+                    completion(nil)
+                    return
+                }
+                
+                guard let url = url else {
+                    print("URL is nil")
+                    completion(nil)
+                    return
+                }
+                
+                // Use SDWebImage to load the image
+                SDWebImageManager.shared.loadImage(
+                    with: url,
+                    options: .highPriority,
+                    progress: nil) { (image, _, error, _, _, _) in
+                        if let error = error {
+                            print("Error loading image: \(error)")
+                            completion(nil)
+                        } else {
+                            completion(image)
+                        }
+                    }
+            }
+        }
+        
+        func loadImageFromLocal() -> Image? {
+            if let stringName = any as? String {
                 Logger.log("AutoImage: ViewModel: loadImageFromLocal(): NO URL provided: \(any.debugDescription)")
                 
-                if let localImage = UIImage(named: stringName) { // if local image
-
+                if let localImage = UIImage(named: stringName) {
                     Logger.log("AutoImage: ViewModel: loadImageFromLocal(): localImage: \(localImage)")
-
-                    return localImage
-                    
-                } else if let systemImage = UIImage(systemName: stringName) { // if system image
-                    
+                    return Image(uiImage: localImage)
+                } else if let systemImage = UIImage(systemName: stringName) {
                     Logger.log("AutoImage: ViewModel: loadImageFromLocal(): systemImage: \(systemImage)")
-                    
-                    return systemImage
-                    
+                    return Image(uiImage: systemImage)
                 }
             }
             return nil
         }
-        
     }
     
     // ********************************
@@ -118,96 +238,84 @@ public struct AutoImage: View {
     
     private var renderingMode: Image.TemplateRenderingMode = .original
     
+    private var contentMode: ContentMode = .fit
+    
     private let placeholderImage: Image
     
     private var isResizable = false
     
     public var body: some View {
         
-        if let string = self.viewModel.any as? String,
-           string.isValidURL == true,
-           let url = URL(string: string) {
-            
-            CachedAsyncImage(url: url) { phase in
-            if let image = phase.image {
-                image // Displays the loaded image.
-                    .renderingMode(renderingMode)
-                    .resizableIf(isResizable)
-                    .aspectRatio(contentMode: .fit)
-            } else if phase.error != nil {
-                // Indicates an error.
-                placeholderImageView()
-                    .aspectRatio(contentMode: .fit)
-                    .animatingMask(isMasked: true)
-                    .overlay(
-                        Color.clear
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                Logger.log("tapped to load image: \(self.viewModel.any.debugDescription)")
-                                self.viewModel.loadImage()
-                            }
-                    )
-            } else {
-                placeholderImageView()
-            }
-        }
+//        WebImage(url: URL(string: viewModel.any as! String))
+//
+//        // Supports options and context, like `.delayPlaceholder` to show placeholder only when error
+//            .onSuccess { image, data, cacheType in
+//                // Success
+//                // Note: Data exist only when queried from disk cache or network. Use `.queryMemoryData` if you really need data
+//            }
+//            .resizable() // Resizable like SwiftUI.Image, you must use this modifier or the view will use the image bitmap size
+//            .placeholder(Image(systemName: "photo")) // Placeholder Image
+//        // Supports ViewBuilder as well
+////            .placeholder {
+////                Rectangle().foregroundColor(.gray)
+////            }
+//            .indicator(.activity) // Activity Indicator
+//            .transition(.fade(duration: 0.5)) // Fade Transition with duration
+//            .scaledToFit()
+//            .frame(width: 300, height: 300, alignment: .center)
+        
+        if let image = viewModel.image {
+
+            image
+                .renderingMode(renderingMode)
+                .resizableIf(isResizable)
+                .aspectRatio(contentMode: contentMode)
+
         } else {
-         
-            ZStack {
-                
-                if let image = viewModel.image {
-                    
-                    Image(uiImage: image)
-                        .renderingMode(renderingMode)
-                        .resizableIf(isResizable)
-                        .aspectRatio(contentMode: .fit)
-                        .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-                    
-                } else {
-                    
-                    if viewModel.isLoading {
-                        
-                        ProgressView()
-                            .scaledToFill()
-                    }
-                    
-                    placeholderImageView()
-                        .animatingMask(isMasked: true)
-                        .overlay(
-                            Color.clear
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    Logger.log("tapped to load image: \(self.viewModel.any.debugDescription)")
-                                    self.viewModel.loadImage()
-                                }
-                        )
-                }
-                
-            }
-            .onAppear {
-                self.viewModel.startTimer()
-            }
-            .onDisappear {
-                self.viewModel.stopTimer()
-            }
-            
+
+            placeholderImageView()
+
         }
     }
     
     @ViewBuilder
     func placeholderImageView() -> some View {
         
-        placeholderImage
-            .renderingMode(.template)
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .opacity(0.5)
-            .padding()
+        ZStack {
+            
+            ProgressView()
+                .isHidden(!viewModel.isLoading)
+            
+            placeholderImage
+                .renderingMode(.template)
+                .resizable()
+                .opacity(0.5)
+                .padding()
+                .aspectRatio(contentMode: contentMode)
+                .animatingMask(isMasked: true)
+                .overlay(
+                    Color.clear
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if self.viewModel.image == nil {
+                                Logger.log("tapped to load image: \(self.viewModel.any.debugDescription)")
+                                self.viewModel.figureOutImage()
+                            }
+                        }
+                )
+        }
+        .onAppear {
+            self.viewModel.startTimer()
+            self.viewModel.figureOutImage()
+        }
+        .onDisappear {
+            self.viewModel.stopTimer()
+        }
     }
     
     public init(
         placeholderImage: Image = Image(systemName: "photo"),
-                _ any: Any? = nil,
+        _ any: Any? = nil,
         useSystemImage: Bool = false
     ) {
         self.placeholderImage = placeholderImage

@@ -33,7 +33,10 @@ let package = Package(
 //        .package(name: "FlowGrid", url: "https://github.com/moyoteg/FlowGrid", .branch("master")),
         .package(name: "SwiftUI-Flow", url: "https://github.com/moyoteg/SwiftUI-Flow", .branch("main")),
         .package(name: "CachedAsyncImage", url: "https://github.com/lorenzofiamingo/swiftui-cached-async-image", .branch("main")),
-        
+        .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "10.0.0"), // Replace with appropriate version
+        .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "2.2.3"),
+        .package(url: "https://github.com/marmelroy/PhoneNumberKit", from: "3.6.8")
+
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -71,6 +74,13 @@ let package = Package(
 //                "FlowGrid",
                 .product(name: "Flow", package: "SwiftUI-Flow"),
                 "CachedAsyncImage",
+                
+                // Firebase
+                .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseStorage", package: "firebase-ios-sdk"),
+                "SDWebImageSwiftUI",
+                "PhoneNumberKit",
+
             ]
         ),
         
