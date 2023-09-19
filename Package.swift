@@ -33,9 +33,12 @@ let package = Package(
 //        .package(name: "FlowGrid", url: "https://github.com/moyoteg/FlowGrid", .branch("master")),
         .package(name: "SwiftUI-Flow", url: "https://github.com/moyoteg/SwiftUI-Flow", .branch("main")),
         .package(name: "CachedAsyncImage", url: "https://github.com/lorenzofiamingo/swiftui-cached-async-image", .branch("main")),
-        .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "10.0.0"), // Replace with appropriate version
+        .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "10.0.0"),
+//        .package(name: "FirebaseUI-iOS", url: "https://github.com/firebase/FirebaseUI-iOS", from: "13.0.0"),
+//        .package(name: "GoogleSignIn-iOS", url: "https://github.com/google/GoogleSignIn-iOS", from: "7.0.0"),
+        
         .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "2.2.3"),
-        .package(url: "https://github.com/marmelroy/PhoneNumberKit", from: "3.6.8")
+        .package(url: "https://github.com/marmelroy/PhoneNumberKit", from: "3.6.8"),
 
     ],
     targets: [
@@ -80,7 +83,9 @@ let package = Package(
                 .product(name: "FirebaseStorage", package: "firebase-ios-sdk"),
                 "SDWebImageSwiftUI",
                 "PhoneNumberKit",
-
+//                "GoogleSignIn-iOS"
+//                    .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),
+//                .product(name: "FirebaseAuthUI", package: "FirebaseUI-iOS"),
             ]
         ),
         
