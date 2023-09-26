@@ -51,30 +51,30 @@ public enum Modifier {
     
     // MARK: - ALL MODIFIERS
     
-    struct ClearButton: ViewModifier {
+    public struct ClearButton: ViewModifier {
         
         @Binding var text: String
+        var gradienMaskColors: [Color]
         
-        public init(text: Binding<String>) {
+        public init(text: Binding<String>, gradienMaskColors: [Color] = []) {
             self._text = text
+            self.gradienMaskColors = gradienMaskColors
         }
         
         public func body(content: Content) -> some View {
             HStack(alignment: .center) {
                 content
-                
-                Spacer()
-                
+                                
                 if !text.isEmpty {
-                    Button(action: {
-                        withAnimation {
-                            self.text = ""
+                    Image(systemName: "delete.left.fill")
+                        .renderingMode(.template)
+                        .gradientMask(colors: gradienMaskColors)
+                        .padding(.leading)
+                        .onTapGesture {
+                            withAnimation {
+                                self.text = ""
+                            }
                         }
-                    }) {
-                        Image("delete.left")
-                            .foregroundColor(Color.blue)
-                    }
-                    .padding()
                 }
             }
         }

@@ -92,19 +92,19 @@ public struct AutoImage: View {
         private var useSystemImage: Bool
         private var cancellables = Set<AnyCancellable>()
         private var timer: Timer?
-        let any: Any?
+        let anyImageResource: Any?
         
         @ObservedObject var imageManager = ImageManager()
 
-        init(any: Any? = nil, useSystemImage: Bool) {
-            self.any = any
+        init(anyImageResource: Any? = nil, useSystemImage: Bool) {
+            self.anyImageResource = anyImageResource
             self.useSystemImage = useSystemImage
         }
         
         func startTimer() {
             guard timer == nil else { return }
-            timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
-                self?.figureOutImage()
+            timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
+                self.figureOutImage()
             }
         }
         
@@ -116,29 +116,29 @@ public struct AutoImage: View {
         func figureOutImage() {
             
             if let _ = image {
-                // image already loaded
+                Logger.log("AutoImage: ViewModel: figureOutImage: image already loaded")
                 return
             }
             
             // 1.- System Image
             if useSystemImage {
-                Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: \(any.debugDescription)")
+                Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: \(anyImageResource.debugDescription)")
                 
-                if let stringName = any as? String,
+                if let stringName = anyImageResource as? String,
                    let systemImage = UIImage(systemName: stringName) {
                     self.image = Image(uiImage: systemImage)
-                    Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: ✅ success: \(any.debugDescription)")
+                    Logger.log("AutoImage: ViewModel: loadImage(): useSystemImage: ✅ success: \(anyImageResource.debugDescription)")
                     return
                 }
             }
             
             // 2.- URL
-            if let string = any as? String, string.contains("gs://") {
+            if let string = anyImageResource as? String, string.contains("gs://") {
                 
                 Logger.log("AutoImage: ViewModel: loadImage(): Firebase path provided for image: \(string)")
                 loadImageFromFirebase(path: string)
                 
-            } else if let string = any as? String,
+            } else if let string = anyImageResource as? String,
                       string.contains("http"),
                       let url = URL(string: string) {
                 
@@ -150,7 +150,7 @@ public struct AutoImage: View {
             else {
                 
                 // 3.- load from local assets
-                Logger.log("AutoImage: ViewModel: loadImage(): NO URL provided: \(any.debugDescription)")
+                Logger.log("AutoImage: ViewModel: loadImage(): NO URL provided: \(anyImageResource.debugDescription)")
                 self.image = loadImageFromLocal()
             }
         }
@@ -218,8 +218,8 @@ public struct AutoImage: View {
         }
         
         func loadImageFromLocal() -> Image? {
-            if let stringName = any as? String {
-                Logger.log("AutoImage: ViewModel: loadImageFromLocal(): NO URL provided: \(any.debugDescription)")
+            if let stringName = anyImageResource as? String {
+                Logger.log("AutoImage: ViewModel: loadImageFromLocal(): NO URL provided: \(anyImageResource.debugDescription)")
                 
                 if let localImage = UIImage(named: stringName) {
                     Logger.log("AutoImage: ViewModel: loadImageFromLocal(): localImage: \(localImage)")
@@ -267,8 +267,8 @@ public struct AutoImage: View {
         if let image = viewModel.image {
 
             image
-                .renderingMode(renderingMode)
                 .resizableIf(isResizable)
+                .renderingMode(renderingMode)
                 .aspectRatio(contentMode: contentMode)
 
         } else {
@@ -286,23 +286,23 @@ public struct AutoImage: View {
             ProgressView()
                 .isHidden(!viewModel.isLoading)
             
-            placeholderImage
-                .renderingMode(.template)
-                .resizable()
-                .opacity(0.5)
-                .padding()
-                .aspectRatio(contentMode: contentMode)
-                .animatingMask(isMasked: true)
-                .overlay(
-                    Color.clear
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            if self.viewModel.image == nil {
-                                Logger.log("tapped to load image: \(self.viewModel.any.debugDescription)")
-                                self.viewModel.figureOutImage()
+                placeholderImage
+                    .renderingMode(.template)
+                    .resizable()
+                    .opacity(0.5)
+                    .padding()
+                    .aspectRatio(contentMode: contentMode)
+                    .animatingMask(isMasked: true)
+                    .overlay(
+                        Color.clear
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if self.viewModel.image == nil {
+                                    Logger.log("tapped to load image: \(self.viewModel.anyImageResource.debugDescription)")
+                                    self.viewModel.figureOutImage()
+                                }
                             }
-                        }
-                )
+                    )
         }
         .onAppear {
             self.viewModel.startTimer()
@@ -315,11 +315,11 @@ public struct AutoImage: View {
     
     public init(
         placeholderImage: Image = Image(systemName: "photo"),
-        _ any: Any? = nil,
+        _ anyImageResource: Any? = nil,
         useSystemImage: Bool = false
     ) {
         self.placeholderImage = placeholderImage
-        viewModel = ViewModel(any: any, useSystemImage: useSystemImage)
+        viewModel = ViewModel(anyImageResource: anyImageResource, useSystemImage: useSystemImage)
     }
     
     public func resizable() -> AutoImage {
