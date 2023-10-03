@@ -6,7 +6,6 @@
 //  Copyright © 2021 PragCore. All rights reserved.
 //
 
-import Foundation
 import SwiftUI
 
 public enum Modifier {
@@ -224,6 +223,8 @@ public struct TopImageFill<Header: View>: ViewModifier {
     let height: Double
     let header: () -> Header
     
+//    @State var scrollOffset = CGFloat.zero
+
     public init(imageResource: String, height: Double, @ViewBuilder header: @escaping () -> Header) {
         self.imageResource = imageResource
         self.height = height
@@ -240,26 +241,32 @@ public struct TopImageFill<Header: View>: ViewModifier {
             .backgroundImageFillBlur(imageResource: imageResource)
             .listRowInsets(EdgeInsets())
             
-            content
-                .textCase(nil)
-                .listRowInsets(EdgeInsets())
-                .navigationBarTitleDisplayMode(.automatic)
-                .listStyle(PlainListStyle())
+//            ObservableScrollView(scrollOffset: $scrollOffset) {
+                content
+                    .textCase(nil)
+                    .listRowInsets(EdgeInsets())
+                    .navigationBarTitleDisplayMode(.automatic)
+                    .listStyle(PlainListStyle())
+//                    .frame(height: max(50, 100 - max(scrollOffset, 0)))
+//            }
         }
     }
 }
 
 public extension View {
-    func tagImage(imageResource: String, foregroundColor: Color, shadowColor: Color = .black) -> some View {
-        self.modifier(TagImage(imageResource: imageResource, foregroundColor: foregroundColor, shadowColor: shadowColor))
+    func tagImage(imageResource: String, text: String = "", foregroundColor: Color, shadowColor: Color = .black) -> some View {
+        self.modifier(TagImage(imageResource: imageResource, text: text, foregroundColor: foregroundColor, shadowColor: shadowColor))
     }
 }
 
 public struct TagImage: ViewModifier {
     
     public var imageResource: String
+    public var text: String
     public var foregroundColor: Color
     public var shadowColor: Color
+    
+    let frame = 16.0
     
     public func body(content: Content) -> some View {
         
@@ -273,12 +280,25 @@ public struct TagImage: ViewModifier {
                 
                 HStack {
                     
-                    AutoImage(imageResource)
-                        .resizable()
-                        .renderingMode(.template)
-                        .foregroundColor(foregroundColor.opacity(0.5))
-                        .frame(width: 24, height: 24)
-                        .shadow(color: shadowColor, radius: 5)
+                    HStack {
+                        
+                        AutoImage(imageResource)
+                            .resizable()
+                            .renderingMode(.template)
+                            .foregroundColor(foregroundColor.opacity(0.5))
+                            .frame(width: frame, height: frame)
+                            .shadow(color: shadowColor, radius: 5)
+                            .padding(2)
+
+                        Text(text)
+                            .padding(2)
+                            .foregroundColor(foregroundColor.opacity(0.5))
+                            .shadow(color: shadowColor, radius: 5)
+                            .font(.caption)
+                    }
+                    .padding(frame/2)
+                    .background(.ultraThinMaterial.opacity(0.5))
+                    .cornerRadius(frame)
                     
                     Spacer()
                 }
@@ -291,6 +311,6 @@ public struct TagImage: ViewModifier {
 struct TagImage_Previews: PreviewProvider {
     static var previews: some View {
         Text("Hello, world!")
-            .modifier(TagImage(imageResource: "car", foregroundColor: .white, shadowColor: .green))
+            .modifier(TagImage(imageResource: "car", text: "car", foregroundColor: .white, shadowColor: .green))
     }
 }

@@ -71,10 +71,17 @@ public struct AutoImage: View {
                 
                 URLSession.shared.dataTaskPublisher(for: request)
                     .tryMap { output in
+                        
                         if let response = output.response as? HTTPURLResponse, let eTag = response.allHeaderFields["Etag"] as? String {
                             ETagCacheManager.shared.add(eTag, for: url)
                         }
-                        return UIImage(data: output.data)!
+                        
+                        if let uiimage = UIImage(data: output.data) {
+                            Logger.log("AutoImage: ViewModel: url: valid output.data for uiimage")
+                            return uiimage
+                        }
+                        Logger.log("AutoImage: ViewModel: url: invalid output.data for uiimage")
+                        return nil
                     }
                     .receive(on: DispatchQueue.main)
                     .replaceError(with: nil)
@@ -218,15 +225,21 @@ public struct AutoImage: View {
         }
         
         func loadImageFromLocal() -> Image? {
-            if let stringName = anyImageResource as? String {
-                Logger.log("AutoImage: ViewModel: loadImageFromLocal(): NO URL provided: \(anyImageResource.debugDescription)")
+            if let anyImageResource = anyImageResource,
+               let stringName: String = anyImageResource as? String {
+                
+                Logger.log("AutoImage: ViewModel: loadImageFromLocal(): NO URL provided: \(anyImageResource)")
                 
                 if let localImage = UIImage(named: stringName) {
+                    
                     Logger.log("AutoImage: ViewModel: loadImageFromLocal(): localImage: \(localImage)")
                     return Image(uiImage: localImage)
-                } else if let systemImage = UIImage(systemName: stringName) {
-                    Logger.log("AutoImage: ViewModel: loadImageFromLocal(): systemImage: \(systemImage)")
-                    return Image(uiImage: systemImage)
+                    
+                } else if let _ = UIImage(systemName: stringName) {
+                    
+                    Logger.log("AutoImage: ViewModel: loadImageFromLocal(): systemImage: \(stringName)")
+                    return Image(systemName: stringName)
+                    
                 }
             }
             return nil
