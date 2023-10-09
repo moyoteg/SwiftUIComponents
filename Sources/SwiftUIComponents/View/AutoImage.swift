@@ -13,6 +13,7 @@ import CachedAsyncImage
 import Firebase
 import FirebaseStorage
 import SDWebImageSwiftUI
+import AVKit
 
 // ETag Cache Manager
 class ETagCacheManager {
@@ -49,6 +50,10 @@ class ImageCacheManager {
 public struct AutoImage: View {
     
     class ViewModel: ObservableObject {
+        
+        // Add AVPlayer properties
+        @Published var isVideoLoaded = false
+        var player: AVPlayer?
         
         @Published var image: Image? = nil {
             didSet {
@@ -152,7 +157,17 @@ public struct AutoImage: View {
                 Logger.log("AutoImage: ViewModel: loadImage(): URL provided for image: \(url)")
                 
                 self.url = url
-                self.imageManager.load(url: url)
+                
+                // Check if the URL is a video URL and set isVideoLoaded
+                isVideoURL(url) { isVideo in
+                    if isVideo {
+                        DispatchQueue.main.async {
+                            self.isVideoLoaded = true
+                        }
+                    } else {
+                        self.imageManager.load(url: url)
+                    }
+                }
             }
             else {
                 
@@ -160,6 +175,54 @@ public struct AutoImage: View {
                 Logger.log("AutoImage: ViewModel: loadImage(): NO URL provided: \(anyImageResource.debugDescription)")
                 self.image = loadImageFromLocal()
             }
+        }
+        
+        private func isVideoURL(_ url: URL, completion: @escaping (Bool) -> Void) {
+            // Get the file path extension from the URL
+            let fileExtension = url.pathExtension.lowercased()
+            
+            // Check for common video file extensions
+            let videoExtensions: Set<String> = ["mp4", "mov", "avi", "mkv", "flv", "wmv", "m4v", "webm"]
+            
+            if videoExtensions.contains(fileExtension) {
+                completion(true)
+                return
+            }
+            
+            // Check the content type of the URL (requires making a network request)
+            getMimeType(for: url) { mimeType in
+                if let mimeType = mimeType, mimeType.hasPrefix("video/") {
+                    completion(true)
+                } else {
+                    completion(false)
+                }
+            }
+        }
+        
+        // Helper function to get the MIME type of a URL
+        private func getMimeType(for url: URL, completion: @escaping (String?) -> Void) {
+            var request = URLRequest(url: url)
+            request.httpMethod = "HEAD"
+            
+            let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
+                guard let response = response as? HTTPURLResponse, let contentType = response.allHeaderFields["Content-Type"] as? String else {
+                    completion(nil)
+                    return
+                }
+                
+                completion(contentType)
+            }
+            
+            task.resume()
+        }
+
+        
+        // Load video from URL
+        func loadVideo(from url: URL) {
+            // Initialize AVPlayer with the video URL
+            self.player = AVPlayer(url: url)
+            self.player?.play()
+            self.isVideoLoaded = true
         }
         
         func loadImageFromFirebase(path: String) {
@@ -259,35 +322,23 @@ public struct AutoImage: View {
     
     public var body: some View {
         
-//        WebImage(url: URL(string: viewModel.any as! String))
-//
-//        // Supports options and context, like `.delayPlaceholder` to show placeholder only when error
-//            .onSuccess { image, data, cacheType in
-//                // Success
-//                // Note: Data exist only when queried from disk cache or network. Use `.queryMemoryData` if you really need data
-//            }
-//            .resizable() // Resizable like SwiftUI.Image, you must use this modifier or the view will use the image bitmap size
-//            .placeholder(Image(systemName: "photo")) // Placeholder Image
-//        // Supports ViewBuilder as well
-////            .placeholder {
-////                Rectangle().foregroundColor(.gray)
-////            }
-//            .indicator(.activity) // Activity Indicator
-//            .transition(.fade(duration: 0.5)) // Fade Transition with duration
-//            .scaledToFit()
-//            .frame(width: 300, height: 300, alignment: .center)
-        
         if let image = viewModel.image {
-
+            
             image
                 .resizableIf(isResizable)
                 .renderingMode(renderingMode)
                 .aspectRatio(contentMode: contentMode)
-
+            
+            // Check if the URL is a video
+        } else if let url = viewModel.url, viewModel.isVideoLoaded {
+            
+            VideoPlayer(player: viewModel.player)
+                .onAppear {
+                    self.viewModel.loadVideo(from: url)
+                }
+            
         } else {
-
             placeholderImageView()
-
         }
     }
     

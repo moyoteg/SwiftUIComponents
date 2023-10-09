@@ -22,7 +22,7 @@ extension String: StringFilterable {
 public struct FilteredList<Element: StringFilterable,
                            Content: View>: View {
     
-    let title: String?
+    let title: String
     let list: [Element]
     @Binding private var bindingFilterText:String
     
@@ -93,7 +93,7 @@ public struct FilteredList<Element: StringFilterable,
                     .onDelete(perform: onDelete)
                 }
             }
-            .navigationBarTitle(title ?? "")
+            .navigationBarTitle(title)
             #elseif os(watchOS)
             List {
                 if filteredList.isEmpty {
@@ -106,7 +106,7 @@ public struct FilteredList<Element: StringFilterable,
                     .onDelete(perform: onDelete)
                 }
             }
-            .navigationBarTitle(title ?? "")
+            .navigationBarTitle(title)
             #endif
         }
     }
