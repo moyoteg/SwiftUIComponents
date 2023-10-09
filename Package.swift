@@ -28,18 +28,19 @@ let package = Package(
         .package(name: "PermissionsKit", url: "https://github.com/moyoteg/PermissionsKit", .branch("main")),
         .package(name: "CloudyLogs", url: "https://github.com/moyoteg/CloudyLogs", .branch("master")),
         .package(name: "SwiftyUserDefaults", url: "https://github.com/sunshinejr/SwiftyUserDefaults", from: "5.0.0"),
-//        .package(name: "Introspect", url: "https://github.com/siteline/SwiftUI-Introspect.git", .branch("master")),
         .package(name: "Introspect", url: "https://github.com/moyoteg/SwiftUI-Introspect", .branch("master")),
 //        .package(name: "FlowGrid", url: "https://github.com/moyoteg/FlowGrid", .branch("master")),
         .package(name: "SwiftUI-Flow", url: "https://github.com/moyoteg/SwiftUI-Flow", .branch("main")),
         .package(name: "CachedAsyncImage", url: "https://github.com/lorenzofiamingo/swiftui-cached-async-image", .branch("main")),
         .package(url: "https://github.com/firebase/firebase-ios-sdk", from: "10.0.0"),
 //        .package(name: "FirebaseUI-iOS", url: "https://github.com/firebase/FirebaseUI-iOS", from: "13.0.0"),
-//        .package(name: "GoogleSignIn-iOS", url: "https://github.com/google/GoogleSignIn-iOS", from: "7.0.0"),
+        .package(name: "GoogleSignIn", url: "https://github.com/google/GoogleSignIn-iOS", from: "7.0.0"),
         
         .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "2.2.3"),
         .package(url: "https://github.com/marmelroy/PhoneNumberKit", from: "3.6.8"),
-
+        .package(name: "Moya", url: "https://github.com/Moya/Moya", .upToNextMajor(from: "15.0.0")),
+        .package(name: "SwiftPackageManifest", url: "https://github.com/SwiftDocOrg/SwiftPackageManifest", .upToNextMajor(from: "0.1.0")),
+        
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -79,13 +80,40 @@ let package = Package(
                 "CachedAsyncImage",
                 
                 // Firebase
-                .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAnalyticsWithoutAdIdSupport", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAnalyticsOnDeviceConversion", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAnalyticsSwift", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAuth", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAppCheck", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAppDistribution-Beta", package: "firebase-ios-sdk"),
+//                .product(name: "FirebaseAuthCombine-Community", package: "firebase-ios-sdk"),
+//                .product(name: "FirebaseFirestoreCombine-Community", package: "firebase-ios-sdk"),
+//                .product(name: "FirebaseFunctionsCombine-Community", package: "firebase-ios-sdk"),
+//                .product(name: "FirebaseStorageCombine-Community", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseCrashlytics", package: "firebase-ios-sdk"),
+//                .product(name: "FirebaseDatabase", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseDatabaseSwift", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseDynamicLinks", package: "firebase-ios-sdk"),
+//                .product(name: "FirebaseFirestore", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseFirestoreSwift", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseFunctions", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseInAppMessagingSwift-Beta", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseInstallations", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseMessaging", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseMLModelDownloader", package: "firebase-ios-sdk"),
+                .product(name: "FirebasePerformance", package: "firebase-ios-sdk"),
+//                .product(name: "FirebaseRemoteConfig", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseRemoteConfigSwift", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseStorage", package: "firebase-ios-sdk"),
+                
                 "SDWebImageSwiftUI",
                 "PhoneNumberKit",
-//                "GoogleSignIn-iOS"
-//                    .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS"),
-//                .product(name: "FirebaseAuthUI", package: "FirebaseUI-iOS"),
+                //                "GoogleSignIn-iOS"
+                .product(name: "GoogleSignInSwift", package: "GoogleSignIn"),
+                //                .product(name: "FirebaseAuthUI", package: "FirebaseUI-iOS"),
+                "Moya",
+                "SwiftPackageManifest",
             ]
         ),
         
