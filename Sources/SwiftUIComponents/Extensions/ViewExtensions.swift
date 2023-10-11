@@ -7,6 +7,74 @@
 
 import SwiftUI
 
+public struct ConnectionOverlayModifier: ViewModifier {
+    @Binding var isConnected: Bool
+    @State private var isOverlayVisible: Bool = true
+    
+    public func body(content: Content) -> some View {
+        ZStack {
+            
+            content
+                .disabled(!isConnected)
+                .opacity(isConnected ? 1:0.5)
+            
+            if !isConnected {
+                // Semi-transparent background
+                Color.white.opacity(0.3)
+                    .edgesIgnoringSafeArea(.all)
+                    .background(.ultraThinMaterial)
+            }
+            
+            if !isConnected && !isOverlayVisible {
+            
+                Image(systemName: "wifi.slash")
+                    .foregroundColor(.primary)
+                    .font(.headline)
+                    .padding()
+            }
+            
+            if !isConnected && isOverlayVisible {
+                
+                // Connection status text
+                HStack {
+                    
+                    Image(systemName: "wifi.slash")
+                        .foregroundColor(.white)
+
+                    Text("No internet connection!")
+                        .foregroundColor(.white)
+                    
+                    Image(systemName: "x.circle.fill")
+                        .foregroundColor(.white)
+                }
+                .padding()
+                .font(.headline)
+                .background(Color.red)
+                .cornerRadius(8)
+                .shadow(radius: 5)
+                .transition(.opacity)
+                .animation(.easeInOut, value: UUID())
+                .onTapGesture {
+                    withAnimation {
+                        isOverlayVisible = false
+                    }
+                }
+            }
+        }
+        .onChange(of: isConnected) { newValue in
+            withAnimation {
+                isOverlayVisible = !newValue
+            }
+        }
+    }
+}
+
+public extension View {
+    func connectionOverlay(isConnected: Binding<Bool>) -> some View {
+        self.modifier(ConnectionOverlayModifier(isConnected: isConnected))
+    }
+}
+
 public extension Image {
     func resizableIf(_ condition: Bool) -> Self {
         if condition {

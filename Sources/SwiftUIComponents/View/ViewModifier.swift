@@ -55,7 +55,7 @@ public enum Modifier {
         @Binding var text: String
         var gradienMaskColors: [Color]
         
-        public init(text: Binding<String>, gradienMaskColors: [Color] = []) {
+        public init(text: Binding<String>, gradienMaskColors: [Color] = [.primary]) {
             self._text = text
             self.gradienMaskColors = gradienMaskColors
         }
@@ -67,7 +67,7 @@ public enum Modifier {
                 if !text.isEmpty {
                     Image(systemName: "delete.left.fill")
                         .renderingMode(.template)
-                        .gradientMask(colors: gradienMaskColors)
+                        .foregroundStyle(.linearGradient(colors: gradienMaskColors, startPoint: .leading, endPoint: .trailing) )
                         .padding(.leading)
                         .onTapGesture {
                             withAnimation {
