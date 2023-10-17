@@ -8,11 +8,16 @@
 import SwiftUI
     
 public struct DragIndicator: View {
+    
+    let color: Color
+    
     public var body: some View {
         RoundedRectangle(cornerRadius: 20)
             .frame(width: 68, height: 3)
-            .foregroundColor(Color.white)
+            .foregroundColor(color)
     }
     
-    public init() {}
+    public init(color: Color = .white) {
+        self.color = color
+    }
 }

@@ -8,8 +8,8 @@
 import SwiftUI
 
 public extension View {
-    func reportProblemAction(_ reportProblemAction: @escaping (String) -> Void) -> some View {
-        self.modifier(ReportProblemModifier(reportProblemAction: reportProblemAction))
+    func reportProblemAction(showSheet: Binding<Bool>, reportProblemAction: @escaping (String) -> Void) -> some View {
+        self.modifier(ReportProblemModifier(reportProblemAction: reportProblemAction, showSheet: showSheet))
     }
 }
 

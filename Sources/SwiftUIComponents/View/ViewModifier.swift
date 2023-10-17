@@ -68,7 +68,6 @@ public enum Modifier {
                     Image(systemName: "delete.left.fill")
                         .renderingMode(.template)
                         .foregroundStyle(.linearGradient(colors: gradienMaskColors, startPoint: .leading, endPoint: .trailing) )
-                        .padding(.leading)
                         .onTapGesture {
                             withAnimation {
                                 self.text = ""
@@ -123,6 +122,29 @@ public enum Modifier {
         }
     }
     
+}
+
+
+
+extension View {
+    public func addDragIndicator(color: Color = .white) -> some View {
+        modifier(AddDragIndicator(color: color))
+    }
+}
+
+public struct AddDragIndicator: ViewModifier {
+    
+    let color: Color
+    
+    public func body(content: Content) -> some View {
+        VStack {
+            DragIndicator(color: color)
+                .padding(.top)
+                .background(.clear)
+            content
+                
+        }
+    }
 }
 
 extension View {

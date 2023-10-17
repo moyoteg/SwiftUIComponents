@@ -7,12 +7,32 @@
 
 import SwiftUI
 
-struct SwiftUIView: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+import CloudyLogs
+
+public struct NotSignedInOverlay<OverlayContent: View>: ViewModifier {
+    let isSignedIn: Bool
+    let overlayContent: () -> OverlayContent
+    
+    public func body(content: Content) -> some View {
+        ZStack {
+            if isSignedIn {
+                content
+            } else {
+                content
+                    .disabled(true)
+                    .blur(radius: 3)
+                overlayContent()
+            }
+        }
     }
 }
 
-#Preview {
-    SwiftUIView()
+public extension View {
+    func notSignedInOverlay<Overlay: View>(
+        isSignedIn: Bool,
+        @ViewBuilder overlay: @escaping () -> Overlay
+    ) -> some View {
+        self.modifier(NotSignedInOverlay(isSignedIn: isSignedIn, overlayContent: overlay))
+    }
 }
+
