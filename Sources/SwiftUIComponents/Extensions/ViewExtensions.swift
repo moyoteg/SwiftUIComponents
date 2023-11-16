@@ -8,7 +8,7 @@
 import SwiftUI
 
 public extension View {
-    func reportProblemAction(showSheet: Binding<Bool>, reportProblemAction: @escaping (String) -> Void) -> some View {
+    func reportProblemAction(showSheet: Binding<Bool>, reportProblemAction: @escaping (String, UIImage?) -> Void) -> some View {
         self.modifier(ReportProblemModifier(reportProblemAction: reportProblemAction, showSheet: showSheet))
     }
 }

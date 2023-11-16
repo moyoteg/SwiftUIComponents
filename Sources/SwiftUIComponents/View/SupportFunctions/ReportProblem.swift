@@ -10,6 +10,9 @@ import SwiftUI
 public struct ReportProblem: View {
     @Binding var isShowingReportSheet: Bool
     @Binding var problemDescription: String
+    @Binding var selectedImage: UIImage? // Updated to use a Binding for selectedImage
+    @State private var isImagePickerPresented = false
+    
     let submitAction: () -> Void
     
     @FocusState private var focusedField: FocusedField?
@@ -41,6 +44,34 @@ public struct ReportProblem: View {
                     }
                 
                 Button(action: {
+                    isImagePickerPresented = true
+                }) {
+                    HStack {
+                        Image(systemName: "camera")
+                            .font(.system(size: 20))
+                            .foregroundColor(.blue)
+                        Text("Attach Screenshot")
+                            .font(.headline)
+                            .foregroundColor(.blue)
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.blue, lineWidth: 2)
+                    )
+                }
+                .sheet(isPresented: $isImagePickerPresented, onDismiss: loadImage) {
+                    ImagePicker(image: $selectedImage)
+                }
+                
+                if let selectedImage = selectedImage {
+                    Image(uiImage: selectedImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: .infinity, maxHeight: 200)
+                }
+                
+                Button(action: {
                     submitAction()
                 }) {
                     Text("Submit")
@@ -60,6 +91,46 @@ public struct ReportProblem: View {
                     isShowingReportSheet = false
                 }
             )
+        }
+    }
+    
+    // Function to handle image selection
+    private func loadImage() {
+        // Handle the selected image here
+        // You can resize or compress the image as needed
+    }
+}
+
+
+
+struct ImagePicker: UIViewControllerRepresentable {
+    @Binding var image: UIImage?
+    @Environment(\.presentationMode) private var presentationMode
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        var parent: ImagePicker
+        
+        init(_ parent: ImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let uiImage = info[.originalImage] as? UIImage {
+                parent.image = uiImage
+            }
+            parent.presentationMode.wrappedValue.dismiss()
         }
     }
 }

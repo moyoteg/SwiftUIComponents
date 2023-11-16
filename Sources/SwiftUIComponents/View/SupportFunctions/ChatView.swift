@@ -234,7 +234,7 @@ public struct RepresentativeChatsView: View {
     @ObservedObject var viewModel = RepresentativeChatViewModel()
     
     public var body: some View {
-        NavigationView {
+        NavigationStack {
             List(viewModel.chats) { chat in
                 NavigationLink(destination: ChatView(chatRoomId: chat.id)) {
                     HStack {

@@ -6,14 +6,12 @@
 //
 
 import SwiftUI
-
 import CloudyLogs
 import ExyteChat
 
 public struct ReportProblemModifier: ViewModifier {
-    
     public enum SupportFunction: Int, Identifiable, Equatable {
-        public var id:Int { self.rawValue }
+        public var id: Int { self.rawValue }
         
         case reportProblem
         case customerChat
@@ -33,31 +31,30 @@ public struct ReportProblemModifier: ViewModifier {
     }
     
     class ViewModel: ObservableObject {
-
         @Published var selectedFunction: SupportFunction?
         
-        public init() {
-        }
+        public init() {}
     }
-
+    
     @ObservedObject var viewModel = ViewModel()
     
-    @Binding var showSheet: Bool // Use a Binding to control the sheet's visibility
+    @Binding var showSheet: Bool
     @State private var problemDescription = ""
+    @State private var selectedImage: UIImage? // Added property for selected image
     @State private var isTucked = true
     @State private var initialPosition = 0.0
     @State private var offsetY = 0.0
     @State private var isDragging = false
     
-    let reportProblemAction: (String) -> Void
+    let reportProblemAction: (String, UIImage?) -> Void // Updated closure to accept an image
     let buttonFrame = 32.0
     
-    let functionButtons: [SupportFunction] // Parameter for functionButtons
+    let functionButtons: [SupportFunction]
     
-    public init(reportProblemAction: @escaping (String) -> Void, showSheet: Binding<Bool>, functionButtons: [SupportFunction] = [.reportProblem, .customerChat]) {
+    public init(reportProblemAction: @escaping (String, UIImage?) -> Void, showSheet: Binding<Bool>, functionButtons: [SupportFunction] = [.reportProblem, .customerChat]) {
         self.reportProblemAction = reportProblemAction
-        self._showSheet = showSheet // Initialize the Binding
-        self.functionButtons = functionButtons // Initialize functionButtons with the provided value or default
+        self._showSheet = showSheet
+        self.functionButtons = functionButtons
     }
     
     public func body(content: Content) -> some View {
@@ -71,7 +68,7 @@ public struct ReportProblemModifier: ViewModifier {
                     Group {
                         Image(systemName: "chevron.left.circle")
                             .frame(width: buttonFrame, height: buttonFrame)
-                            .rotationEffect(Angle(degrees: isTucked ? 0:180))
+                            .rotationEffect(Angle(degrees: isTucked ? 0 : 180))
                             .opacity(0.3)
                             .shadow(radius: 5)
                             .onTapGesture {
@@ -80,14 +77,14 @@ public struct ReportProblemModifier: ViewModifier {
                                 }
                             }
                         HStack {
-                            ForEach(functionButtons , id:\.self) { function in
+                            ForEach(functionButtons, id: \.self) { function in
                                 functionViewButton(supportFunction: function)
                             }
                         }
                     }
                     .background(.ultraThinMaterial)
                     .cornerRadius(buttonFrame)
-                    .offset(x: isTucked ? buttonFrame * Double(functionButtons.count) + buttonFrame:0, y: offsetY)
+                    .offset(x: isTucked ? buttonFrame * Double(functionButtons.count) + buttonFrame : 0, y: offsetY)
                     .gesture(
                         DragGesture()
                             .onChanged { gesture in
@@ -95,7 +92,7 @@ public struct ReportProblemModifier: ViewModifier {
                                 isDragging = true
                             }
                             .onEnded { _ in
-                                initialPosition = offsetY // Store the new position when dragging ends
+                                initialPosition = offsetY
                                 isDragging = false
                             }
                     )
@@ -129,19 +126,24 @@ public struct ReportProblemModifier: ViewModifier {
     func functionView(supportFunction: SupportFunction) -> some View {
         switch supportFunction {
         case .reportProblem:
-            ReportProblem(isShowingReportSheet: $showSheet, problemDescription: $problemDescription, submitAction: {
-                if problemDescription.count == 0 {
-                    return
+            ReportProblem(
+                isShowingReportSheet: $showSheet,
+                problemDescription: $problemDescription,
+                selectedImage: $selectedImage,
+                submitAction: {
+                    if problemDescription.isEmpty {
+                        return
+                    }
+                    reportProblemAction(problemDescription, selectedImage) // Pass selected image to the closure
+                    showSheet = false
                 }
-                reportProblemAction(problemDescription)
-                showSheet = false // Close the sheet
-            })
+            )
             .addDragIndicator()
         case .customerChat:
             let user = ExyteChat.User(id: "userID12345", name: "John Doe", avatarURL: nil, isCurrentUser: false)
             
             ChatView(chatRoomId: UUID().uuidString)
-                .addDragIndicator()
+            .addDragIndicator()
         }
     }
 }

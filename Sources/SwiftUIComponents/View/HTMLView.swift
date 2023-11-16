@@ -13,7 +13,7 @@ public struct HTMLView: View {
     @Binding var htmlText: String
     
     public var body: some View {
-        WebView(text: $htmlText)
+        HTMLWebView(text: $htmlText)
             .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
     }
     
@@ -22,7 +22,7 @@ public struct HTMLView: View {
     }
 }
 
-struct WebView: UIViewRepresentable {
+struct HTMLWebView: UIViewRepresentable {
     @Binding var text: String
     
     func makeUIView(context: Context) -> WKWebView {
