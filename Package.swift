@@ -36,11 +36,12 @@ let package = Package(
 //        .package(name: "FirebaseUI-iOS", url: "https://github.com/firebase/FirebaseUI-iOS", from: "13.0.0"),
         .package(name: "GoogleSignIn", url: "https://github.com/google/GoogleSignIn-iOS", from: "7.0.0"),
         
-        .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "2.2.3"),
+        .package(url: "https://github.com/SDWebImage/SDWebImageSwiftUI.git", from: "2.2.5"),
         .package(url: "https://github.com/marmelroy/PhoneNumberKit", from: "3.6.8"),
         .package(name: "Moya", url: "https://github.com/Moya/Moya", .upToNextMajor(from: "15.0.0")),
         .package(name: "SwiftPackageManifest", url: "https://github.com/SwiftDocOrg/SwiftPackageManifest", .upToNextMajor(from: "0.1.0")),
         .package(name: "ExyteChat", url: "https://github.com/moyoteg/Chat.git", .branch("main")),
+        .package(url: "https://github.com/SDWebImage/SDWebImageWebPCoder.git", from: "0.3.0")
 
     ],
     targets: [
@@ -116,6 +117,7 @@ let package = Package(
                 "Moya",
                 "SwiftPackageManifest",
                 "ExyteChat",
+                "SDWebImageWebPCoder",
             ]
         ),
         

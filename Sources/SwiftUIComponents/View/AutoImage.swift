@@ -74,33 +74,37 @@ public struct AutoImage: View {
                     request.addValue(eTag, forHTTPHeaderField: "If-None-Match")
                 }
                 
-                URLSession.shared.dataTaskPublisher(for: request)
-                    .tryMap { output in
-                        
-                        if let response = output.response as? HTTPURLResponse, let eTag = response.allHeaderFields["Etag"] as? String {
-                            ETagCacheManager.shared.add(eTag, for: url)
+                SDWebImageManager.shared.loadImage(
+                    with: url,
+                    options: [.retryFailed, .handleCookies],
+                    progress: { (receivedSize, expectedSize, url) in
+                        guard expectedSize > 0 else {
+                            return
                         }
-                        
-                        if let uiimage = UIImage(data: output.data) {
-                            Logger.log("AutoImage: ViewModel: url: valid output.data for uiimage")
-                            return uiimage
+                        // This is your progress block
+                        DispatchQueue.main.async {
+                            self.downloadProgress = abs(Float(receivedSize) / Float(expectedSize))
+                            Logger.log("AutoImage: Download Progress: \(self.downloadProgress)")
                         }
-                        Logger.log("AutoImage: ViewModel: url: invalid output.data for uiimage")
-                        return nil
+                    },
+                    completed: { (image, data, error, cacheType, finished, imageURL) in
+                        // This is your completion block
+                        if let error = error {
+                            // Handle error
+                            Logger.log("AutoImage: Error downloading image: \(error.localizedDescription)", logType: .error)
+                        } else if let image = image {
+                            // Image is downloaded and available
+                            Logger.log("AutoImage: Image downloaded successfully")
+                            // Do something with the image
+                            self.image = Image(uiImage: image)
+                        }
                     }
-                    .receive(on: DispatchQueue.main)
-                    .replaceError(with: nil)
-                    .sink { [weak self] (downloadedImage: UIImage?) in
-                        if let uiImage = downloadedImage {
-                            ImageCacheManager.shared.add(uiImage, for: url)
-                        }
-                        self?.image = downloadedImage.map(Image.init(uiImage:))
-                    }
-                    .store(in: &cancellables)
+                )                
             }
         }
         @Published var isLoading = false
-        
+        @Published var downloadProgress: Float = 0.0
+
         private var useSystemImage: Bool
         private var cancellables = Set<AnyCancellable>()
         private var timer: Timer?
@@ -116,7 +120,7 @@ public struct AutoImage: View {
         func startTimer() {
             guard timer == nil else { return }
             timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { _ in
-                self.figureOutImage()
+                self.figureOutMedia()
             }
         }
         
@@ -125,7 +129,7 @@ public struct AutoImage: View {
             timer = nil
         }
         
-        func figureOutImage() {
+        func figureOutMedia() {
             
             if let _ = image {
                 Logger.log("AutoImage: ViewModel: figureOutImage: image already loaded")
@@ -145,6 +149,13 @@ public struct AutoImage: View {
             }
             
             // 2.- URL
+            if let url = anyImageResource as? URL {
+                Logger.log("AutoImage: ViewModel: loadImage(): URL provided for image: \(url)")
+                self.url = url
+                return
+            }
+            
+            // 3.- String
             if let string = anyImageResource as? String, string.contains("gs://") {
                 
                 Logger.log("AutoImage: ViewModel: loadImage(): Firebase path provided for image: \(string)")
@@ -154,7 +165,7 @@ public struct AutoImage: View {
                       string.contains("http"),
                       let url = URL(string: string) {
                 
-                Logger.log("AutoImage: ViewModel: loadImage(): URL provided for image: \(url)")
+                Logger.log("AutoImage: ViewModel: loadImage(): URL(from string) provided for image: \(url)")
                 
                 self.url = url
                 
@@ -168,8 +179,7 @@ public struct AutoImage: View {
                         self.imageManager.load(url: url)
                     }
                 }
-            }
-            else {
+            } else {
                 
                 // 3.- load from local assets
                 Logger.log("AutoImage: ViewModel: loadImage(): NO URL provided: \(anyImageResource.debugDescription)")
@@ -347,7 +357,8 @@ public struct AutoImage: View {
         
         ZStack {
             
-            ProgressView()
+            ProgressView(value: viewModel.downloadProgress)
+                .progressViewStyle(.circular)
                 .isHidden(!viewModel.isLoading)
             
                 placeholderImage
@@ -363,14 +374,14 @@ public struct AutoImage: View {
                             .onTapGesture {
                                 if self.viewModel.image == nil {
                                     Logger.log("tapped to load image: \(self.viewModel.anyImageResource.debugDescription)")
-                                    self.viewModel.figureOutImage()
+                                    self.viewModel.figureOutMedia()
                                 }
                             }
                     )
         }
         .onAppear {
             self.viewModel.startTimer()
-            self.viewModel.figureOutImage()
+            self.viewModel.figureOutMedia()
         }
         .onDisappear {
             self.viewModel.stopTimer()
