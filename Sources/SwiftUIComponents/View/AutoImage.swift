@@ -55,13 +55,15 @@ public struct AutoImage: View {
         @Published var isVideoLoaded = false
         var player: AVPlayer?
         
-        @Published var image: Image? = nil {
+        @Published var image: Image? {
             didSet {
                 self.stopTimer()
             }
         }
         @Published var url: URL? = nil {
             didSet {
+                
+                guard image == nil else { return }
                 guard let url = url else { return }
                 
                 if let cachedImage = ImageCacheManager.shared.image(for: url) {
@@ -83,8 +85,11 @@ public struct AutoImage: View {
                         }
                         // This is your progress block
                         DispatchQueue.main.async {
-                            self.downloadProgress = abs(Float(receivedSize) / Float(expectedSize))
-                            Logger.log("AutoImage: Download Progress: \(self.downloadProgress)")
+                            let progress = abs(Float(receivedSize) / Float(expectedSize))
+                            withAnimation {
+                                self.downloadProgress = progress
+                            }
+//                            Logger.log("AutoImage: Download Progress: \(self.downloadProgress): url: \(String(describing: url?.absoluteString))")
                         }
                     },
                     completed: { (image, data, error, cacheType, finished, imageURL) in
@@ -115,6 +120,9 @@ public struct AutoImage: View {
         init(anyImageResource: Any? = nil, useSystemImage: Bool) {
             self.anyImageResource = anyImageResource
             self.useSystemImage = useSystemImage
+            
+            self.figureOutMedia()
+            self.startTimer()
         }
         
         func startTimer() {
@@ -132,7 +140,8 @@ public struct AutoImage: View {
         func figureOutMedia() {
             
             if let _ = image {
-                Logger.log("AutoImage: ViewModel: figureOutImage: image already loaded")
+                Logger.log("AutoImage: ViewModel: figureOutImage: image already loaded, stopTimer()")
+                stopTimer()
                 return
             }
             
@@ -317,6 +326,10 @@ public struct AutoImage: View {
             }
             return nil
         }
+        
+        deinit {
+            self.stopTimer()
+        }
     }
     
     // ********************************
@@ -329,6 +342,8 @@ public struct AutoImage: View {
     private let placeholderImage: Image
     
     private var isResizable = false
+    
+    public var strokeColor: Color
     
     public var body: some View {
         
@@ -348,6 +363,7 @@ public struct AutoImage: View {
                 }
             
         } else {
+            
             placeholderImageView()
         }
     }
@@ -357,43 +373,43 @@ public struct AutoImage: View {
         
         ZStack {
             
-            ProgressView(value: viewModel.downloadProgress)
-                .progressViewStyle(.circular)
-                .isHidden(!viewModel.isLoading)
+            placeholderImage
+                .renderingMode(.template)
+                .resizable()
+                .scaledToFit()
+                .aspectRatio(contentMode: contentMode)
+                .opacity(0.5)
+                .padding()
+                .animatingMask(isMasked: true)
+//                .animatingGradientMask(isMasked: true)
+//                .overlay(
+//                    Color.clear
+//                        .contentShape(Rectangle())
+//                        .onTapGesture {
+//                            if self.viewModel.image == nil {
+//                                Logger.log("AutoImage: tapped to load image: \(self.viewModel.anyImageResource.debugDescription)")
+//                                self.viewModel.figureOutMedia()
+//                            }
+//                        }
+//                )
+                .zIndex(0)
             
-                placeholderImage
-                    .renderingMode(.template)
-                    .resizable()
-                    .opacity(0.5)
-                    .padding()
-                    .aspectRatio(contentMode: contentMode)
-                    .animatingMask(isMasked: true)
-                    .overlay(
-                        Color.clear
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                if self.viewModel.image == nil {
-                                    Logger.log("tapped to load image: \(self.viewModel.anyImageResource.debugDescription)")
-                                    self.viewModel.figureOutMedia()
-                                }
-                            }
-                    )
-        }
-        .onAppear {
-            self.viewModel.startTimer()
-            self.viewModel.figureOutMedia()
-        }
-        .onDisappear {
-            self.viewModel.stopTimer()
+            ProgressView(value: viewModel.downloadProgress)
+                .progressViewStyle(GaugeProgressStyle(strokeColor: strokeColor, strokeWidth: 8))
+                .contentShape(Rectangle())
+                .zIndex(1)
+                .padding()
         }
     }
     
     public init(
         placeholderImage: Image = Image(systemName: "photo"),
         _ anyImageResource: Any? = nil,
-        useSystemImage: Bool = false
+        useSystemImage: Bool = false,
+        strokeColor: Color = .blue
     ) {
         self.placeholderImage = placeholderImage
+        self.strokeColor = strokeColor
         viewModel = ViewModel(anyImageResource: anyImageResource, useSystemImage: useSystemImage)
     }
     

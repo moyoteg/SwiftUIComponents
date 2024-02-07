@@ -49,6 +49,8 @@ public class LocationManager: NSObject, ObservableObject, CLLocationManagerDeleg
     @Published public var didPauseLocationUpdates: CLLocationManager?
     @Published public var didResumeLocationUpdates: CLLocationManager?
 
+    @Published public var isSimulatedBySoftware: Bool = false
+    
     public enum Update {
         case didInit
         case didChangeAuthorization(CLAuthorizationStatus)
@@ -142,6 +144,7 @@ public class LocationManager: NSObject, ObservableObject, CLLocationManagerDeleg
         }
         locationHistory.append(location)
         update = .didUpdateLocations(locations)
+        self.isSimulatedBySoftware = locations.filter { $0.sourceInformation?.isSimulatedBySoftware == true }.count > 0
         Logger.log("LocationManager: didUpdateLocations - Updated location: \(location)")
     }
     

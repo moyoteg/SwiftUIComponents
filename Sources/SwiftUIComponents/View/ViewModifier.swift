@@ -78,6 +78,42 @@ public enum Modifier {
         }
     }
     
+    public struct AnimatingGradientMask: ViewModifier {
+        @State private var maskOffset: CGFloat = 0
+        let isMasked: Bool
+        let animationDuration: Double = 1.8
+        
+        public func body(content: Content) -> some View {
+            content
+            // Use content's intrinsic size for mask sizing
+                .overlay(
+                    GeometryReader { geometry in
+                        if isMasked {
+                            movingGradient(geometry: geometry)
+                        }
+                    }
+                )
+        }
+        
+        private func movingGradient(geometry: GeometryProxy) -> some View {
+            LinearGradient(
+                gradient: Gradient(colors: [Color.white.opacity(0), Color.black, Color.white.opacity(0)]),
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+            .frame(width: geometry.size.width * 2, height: geometry.size.height)
+            .offset(x: self.maskOffset)
+            .onAppear {
+                // Start the mask offscreen to the left
+                self.maskOffset = -geometry.size.width
+                withAnimation(Animation.easeInOut(duration: self.animationDuration).repeatForever(autoreverses: false)) {
+                    // Move the mask to the right, across the view
+                    self.maskOffset = geometry.size.width
+                }
+            }
+        }
+    }
+    
     struct AnimatingMask: ViewModifier {
         @State private var maskPosition: CGFloat = 0
         let isMasked: Bool
@@ -124,7 +160,11 @@ public enum Modifier {
     
 }
 
-
+extension View {
+    public func animatingGradientMask(isMasked: Bool) -> some View {
+        self.modifier(Modifier.AnimatingGradientMask(isMasked: isMasked))
+    }
+}
 
 extension View {
     public func addDragIndicator(color: Color = .white) -> some View {
@@ -154,6 +194,10 @@ extension View {
     
     public func animatingMask(isAnimated: Bool = true, isMasked: Bool = true) -> some View {
         modifier(Modifier.AnimatingMask(isMasked: isMasked))
+    }
+    
+    public func animatingGradientMask(isAnimated: Bool = true, isMasked: Bool = true) -> some View {
+        modifier(Modifier.AnimatingGradientMask(isMasked: isMasked))
     }
 }
 
